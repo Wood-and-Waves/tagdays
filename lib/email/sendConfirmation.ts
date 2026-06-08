@@ -30,7 +30,7 @@ export async function sendConfirmationEmail({
   const formattedRole = role === 'student' ? 'Student' : 'Parent/Adult'
 
   await resend.emails.send({
-    from: 'Tag Days 2026 <onboarding@resend.dev>',
+    from: 'Tag Days 2026 <noreply@hhstagdays.com>',
     to,
     subject: `You're signed up for Tag Days 2026!`,
     html: `
