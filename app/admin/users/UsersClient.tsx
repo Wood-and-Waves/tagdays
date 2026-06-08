@@ -7,6 +7,7 @@ export default function UsersClient({ users }: { users: any[] }) {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
+  const [deleting, setDeleting] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
@@ -34,6 +35,28 @@ export default function UsersClient({ users }: { users: any[] }) {
     setEmail('')
     router.refresh()
     setLoading(false)
+  }
+
+  const handleDelete = async (id: string, userEmail: string) => {
+    if (!confirm(`Remove admin access for ${userEmail}? This cannot be undone.`)) return
+    setDeleting(id)
+
+    const res = await fetch('/api/admin/users', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      alert(data.error || 'Something went wrong.')
+      setDeleting(null)
+      return
+    }
+
+    router.refresh()
+    setDeleting(null)
   }
 
   return (
@@ -89,6 +112,7 @@ export default function UsersClient({ users }: { users: any[] }) {
               <th className="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
               <th className="text-left px-4 py-3 font-semibold text-gray-600">Created</th>
               <th className="text-left px-4 py-3 font-semibold text-gray-600">Last Sign In</th>
+              <th className="text-left px-4 py-3 font-semibold text-gray-600">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -113,6 +137,15 @@ export default function UsersClient({ users }: { users: any[] }) {
                   {user.last_sign_in_at
                     ? new Date(user.last_sign_in_at).toLocaleDateString('en-US')
                     : 'Never'}
+                </td>
+                <td className="px-4 py-3">
+                  <button
+                    onClick={() => handleDelete(user.id, user.email)}
+                    disabled={deleting === user.id}
+                    className="text-red-600 hover:text-red-800 font-medium disabled:opacity-50"
+                  >
+                    {deleting === user.id ? 'Removing...' : 'Remove'}
+                  </button>
                 </td>
               </tr>
             ))}
