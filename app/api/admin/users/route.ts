@@ -7,17 +7,15 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { email, password } = await request.json()
+  const { email } = await request.json()
 
-  if (!email || !password) {
-    return NextResponse.json({ error: 'Email and password are required.' }, { status: 400 })
+  if (!email) {
+    return NextResponse.json({ error: 'Email is required.' }, { status: 400 })
   }
 
   const adminClient = createAdminClient()
-  const { data, error } = await adminClient.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
+  const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/admin`,
   })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
