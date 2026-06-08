@@ -23,7 +23,7 @@ export default function TermsPage() {
           <p className="text-gray-600 mb-4">
             By signing up for a Tag Days volunteer shift, you agree to arrive at
             your assigned location on time and fulfill your commitment to the
-            Huntley High School Marching Band fundraiser.
+            Huntley High School Band Boosters fundraiser.
           </p>
 
           <h2 className="text-lg font-bold text-gray-900 mb-2">SMS Terms</h2>

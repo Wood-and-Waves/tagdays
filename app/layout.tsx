@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Tag Days 2026 | Huntley High School Marching Band",
-  description: "Sign up to volunteer for Huntley High School Marching Band Tag Days 2026.",
+  title: "Tag Days 2026 | Huntley High School Band Boosters",
+  description: "Sign up to volunteer for Huntley High School Band Boosters Tag Days 2026.",
 };
 
 export default function RootLayout({

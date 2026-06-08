@@ -34,7 +34,7 @@ export default function LoginPage() {
       <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Tag Days Admin</h1>
-          <p className="text-gray-500 mt-1">Huntley High School Marching Band</p>
+          <p className="text-gray-500 mt-1">Huntley High School Band Boosters</p>
         </div>
 
         {error && (

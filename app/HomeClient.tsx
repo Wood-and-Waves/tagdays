@@ -1,0 +1,162 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { SlotWithSignups } from '@/lib/types'
+
+const formatTime = (t: string) => {
+  const [h, m] = t.slice(0, 5).split(':').map(Number)
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  const hour = h % 12 || 12
+  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`
+}
+
+const formatDate = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString('en-US', {
+  weekday: 'short', month: 'short', day: 'numeric'
+})
+
+export default function HomeClient({ slots }: { slots: SlotWithSignups[] }) {
+  const router = useRouter()
+  const [sortBy, setSortBy] = useState<'time' | 'location'>('time')
+
+  const getSlotData = (slot: SlotWithSignups) => {
+    const activeSignups = slot.signups.filter((s: any) => !s.cancelled)
+    const studentSignups = activeSignups.filter((s: any) => s.role === 'student')
+    const parentSignups = activeSignups.filter((s: any) => s.role === 'parent')
+    const studentsFull = studentSignups.length >= slot.max_students
+    const parentsFull = parentSignups.length >= slot.max_parents
+    const allFull = studentsFull && parentsFull
+    return { studentSignups, parentSignups, studentsFull, parentsFull, allFull }
+  }
+
+  const handleSlotClick = (slot: SlotWithSignups) => {
+    const { allFull } = getSlotData(slot)
+    if (!allFull) router.push(`/signup/${slot.id}`)
+  }
+
+  const byTime = [...slots].sort((a, b) => {
+    if (a.date !== b.date) return a.date.localeCompare(b.date)
+    return a.start_time.localeCompare(b.start_time)
+  })
+
+  const byTimeGrouped = byTime.reduce((acc, slot) => {
+    const key = `${slot.date}-${slot.start_time}`
+    const label = `${formatDate(slot.date)} · ${formatTime(slot.start_time)} - ${formatTime(slot.end_time)}`
+    if (!acc[key]) acc[key] = { label, slots: [] }
+    acc[key].slots.push(slot)
+    return acc
+  }, {} as Record<string, { label: string, slots: SlotWithSignups[] }>)
+
+  const byLocation = slots.reduce((acc, slot) => {
+    const name = slot.location.name
+    if (!acc[name]) acc[name] = { location: slot.location, slots: [] }
+    acc[name].slots.push(slot)
+    return acc
+  }, {} as Record<string, { location: any, slots: SlotWithSignups[] }>)
+
+  const SlotCard = ({ slot, showLocation = false, showDateTime = false }: {
+    slot: SlotWithSignups
+    showLocation?: boolean
+    showDateTime?: boolean
+  }) => {
+    const { studentSignups, parentSignups, studentsFull, parentsFull, allFull } = getSlotData(slot)
+
+    return (
+      <div
+        onClick={() => handleSlotClick(slot)}
+        className={`border-b border-gray-100 last:border-0 px-4 py-3 flex items-center justify-between gap-4 ${
+          allFull ? 'opacity-50 cursor-default' : 'cursor-pointer hover:bg-red-50 active:bg-red-100 transition'
+        }`}
+      >
+        <div className="min-w-0 flex-1">
+          {showLocation && (
+            <p className="font-semibold text-gray-900 text-sm truncate">{slot.location.name}</p>
+          )}
+          {showDateTime && (
+            <p className="font-semibold text-gray-900 text-sm">
+              {formatDate(slot.date)} · {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
+            </p>
+          )}
+          <div className="mt-1 flex flex-wrap gap-x-3 text-xs text-gray-500">
+            <span className={studentsFull ? 'text-green-600 font-semibold' : ''}>
+              Students {studentSignups.length}/{slot.max_students}
+              {studentSignups.length > 0 && `: ${studentSignups.map((s: any) => `${s.first_name} ${s.last_name.charAt(0)}.`).join(', ')}`}
+            </span>
+            <span className={parentsFull ? 'text-green-600 font-semibold' : ''}>
+              Parents {parentSignups.length}/{slot.max_parents}
+              {parentSignups.length > 0 && `: ${parentSignups.map((s: any) => `${s.first_name} ${s.last_name.charAt(0)}.`).join(', ')}`}
+            </span>
+          </div>
+        </div>
+        <div className="shrink-0">
+          {allFull ? (
+            <span className="bg-gray-200 text-gray-600 text-xs font-semibold px-3 py-1 rounded-full">
+              Full
+            </span>
+          ) : (
+            <span className="text-red-700 text-lg">›</span>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => setSortBy('time')}
+          className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+            sortBy === 'time'
+              ? 'bg-red-700 text-white'
+              : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          By Time
+        </button>
+        <button
+          onClick={() => setSortBy('location')}
+          className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+            sortBy === 'location'
+              ? 'bg-red-700 text-white'
+              : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          By Location
+        </button>
+      </div>
+
+      {sortBy === 'time' && (
+        <div className="space-y-4">
+          {Object.entries(byTimeGrouped).map(([key, { label, slots }]) => (
+            <div key={key} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h2 className="font-bold text-gray-900 text-sm">{label}</h2>
+              </div>
+              {slots.map(slot => (
+                <SlotCard key={slot.id} slot={slot} showLocation={true} />
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {sortBy === 'location' && (
+        <div className="space-y-4">
+          {Object.entries(byLocation).map(([name, { location, slots }]) => (
+            <div key={name} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h2 className="font-bold text-gray-900">{name}</h2>
+                {location.address && <p className="text-sm text-gray-500">{location.address}</p>}
+                {location.notes && <p className="text-sm text-yellow-600 mt-1">{location.notes}</p>}
+              </div>
+              {slots.map(slot => (
+                <SlotCard key={slot.id} slot={slot} showDateTime={true} />
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}

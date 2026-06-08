@@ -37,7 +37,7 @@ export async function sendConfirmationEmail({
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background-color: #b91c1c; padding: 24px; text-align: center;">
           <h1 style="color: white; margin: 0;">Tag Days 2026</h1>
-          <p style="color: #fca5a5; margin: 8px 0 0;">Huntley High School Marching Band</p>
+          <p style="color: #fca5a5; margin: 8px 0 0;">Huntley High School Band Boosters</p>
         </div>
 
         <div style="padding: 32px 24px;">
@@ -66,7 +66,7 @@ export async function sendConfirmationEmail({
         </div>
 
         <div style="background-color: #f3f4f6; padding: 16px; text-align: center;">
-          <p style="color: #9ca3af; font-size: 12px; margin: 0;">Huntley High School Marching Band · Huntley, IL</p>
+          <p style="color: #9ca3af; font-size: 12px; margin: 0;">Huntley High School Band Boosters · Huntley, IL</p>
         </div>
       </div>
     `,

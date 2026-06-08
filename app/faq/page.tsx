@@ -7,7 +7,7 @@ export default function FAQPage() {
         <div className="max-w-3xl mx-auto flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold">What is Tag Days?</h1>
-            <p className="text-red-200 mt-1">Huntley High School Marching Band</p>
+            <p className="text-red-200 mt-1">Huntley High School Band Boosters</p>
           </div>
           <Link href="/" className="text-sm underline text-red-200 hover:text-white">
             Back to Schedule
