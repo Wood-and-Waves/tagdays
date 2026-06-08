@@ -1,10 +1,17 @@
+import Link from 'next/link'
+
 export default function TermsPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="bg-red-700 text-white py-6 px-4 shadow-md">
-        <div className="max-w-3xl mx-auto">
-          <h1 className="text-2xl font-bold">Terms of Service</h1>
-          <p className="text-red-200 mt-1">Huntley High School Tag Days 2026</p>
+        <div className="max-w-3xl mx-auto flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold">Terms of Service</h1>
+            <p className="text-red-200 mt-1">Huntley High School Tag Days 2026</p>
+          </div>
+          <Link href="/" className="text-sm underline text-red-200 hover:text-white">
+            Back to Schedule
+          </Link>
         </div>
       </header>
 

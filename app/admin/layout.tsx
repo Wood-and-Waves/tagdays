@@ -23,6 +23,7 @@ export default async function AdminLayout({
           <a href="/admin/slots" className="text-sm hover:text-red-400 transition">Slots</a>
           <a href="/admin/signups" className="text-sm hover:text-red-400 transition">Signups</a>
           <a href="/admin/users" className="text-sm hover:text-red-400 transition">Users</a>
+          <a href="/admin/config" className="text-sm hover:text-red-400 transition">Settings</a>
         </div>
         <a href="/admin/logout" className="text-sm text-gray-400 hover:text-white transition">
           Sign Out
