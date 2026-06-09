@@ -8,24 +8,22 @@ export default async function Home() {
 
   const today = new Date().toISOString().split('T')[0]
 
-  const { data: slots, error } = await supabase
-    .from('slots')
-    .select(`
-      *,
-      location:locations(*),
-      signups(*)
-    `)
-    .gte('date', today)
-    .order('date', { ascending: true })
-    .order('start_time', { ascending: true })
+  const [slotsResult, configResult] = await Promise.all([
+    supabase
+      .from('slots')
+      .select('*, location:locations(*), signups(*)')
+      .gte('date', today)
+      .order('date', { ascending: true })
+      .order('start_time', { ascending: true }),
+    supabase
+      .from('admin_config')
+      .select('event_year')
+      .single()
+  ])
 
-  if (error) {
-    console.error(error)
-  }
+  const allSlots = (slotsResult.data as SlotWithSignups[] || [])
+  const eventYear = configResult.data?.event_year || 2026
 
-  const allSlots = (slots as SlotWithSignups[] || [])
-
-  // Compute stats
   const totalSlots = allSlots.length
   const totalStudentSpots = allSlots.reduce((acc, s) => acc + s.max_students, 0)
   const totalParentSpots = allSlots.reduce((acc, s) => acc + s.max_parents, 0)
@@ -40,7 +38,6 @@ export default async function Home() {
   const openSpots = (totalStudentSpots - filledStudents) + (totalParentSpots - filledParents)
   const totalSignups = filledStudents + filledParents
 
-  // Filter out fully booked slots for public view
   const openSlots = allSlots.filter(slot => {
     const active = slot.signups.filter((s: any) => !s.cancelled)
     const students = active.filter((s: any) => s.role === 'student').length
@@ -53,7 +50,7 @@ export default async function Home() {
       <header className="bg-red-700 text-white py-6 px-4 shadow-md">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">Tag Days 2026</h1>
+            <h1 className="text-3xl font-bold">Tag Days {eventYear}</h1>
             <p className="text-red-200 mt-1">Huntley High School Band Boosters</p>
           </div>
           <Link href="/faq" className="text-sm underline text-red-200 hover:text-white">
@@ -63,16 +60,11 @@ export default async function Home() {
       </header>
 
       <div className="max-w-5xl mx-auto px-4 py-8 flex-1 w-full">
-
-        {/* Stats — mobile shows only open spots, desktop shows all 4 */}
         <div className="mb-8">
-          {/* Mobile: single open spots card */}
           <div className="sm:hidden bg-white rounded-lg shadow-sm border border-gray-200 p-4 text-center">
             <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Open Spots Remaining</p>
             <p className="text-4xl font-bold text-red-700">{openSpots}</p>
           </div>
-
-          {/* Desktop: all 4 cards */}
           <div className="hidden sm:grid grid-cols-4 gap-4">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 text-center">
               <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Total Shifts</p>
@@ -105,7 +97,7 @@ export default async function Home() {
       <footer className="bg-gray-900 text-gray-400 py-6 px-4 mt-8">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 text-sm">
           <div>
-            <p className="font-semibold text-white">Tag Days 2026</p>
+            <p className="font-semibold text-white">Tag Days {eventYear}</p>
             <p>Huntley High School Band Boosters · Huntley, IL</p>
           </div>
           <div className="flex gap-6">

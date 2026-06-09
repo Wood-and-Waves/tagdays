@@ -42,10 +42,18 @@ export type AdminConfig = {
   id: string
   reminder_1_hours_before: number
   reminder_2_hours_before: number
+  event_year: number
   updated_at: string
 }
 
 export type SlotWithSignups = Slot & {
   signups: Signup[]
   location: Location
+}
+
+export type RosterStudent = {
+  id: string
+  first_name: string
+  last_name: string
+  created_at: string
 }

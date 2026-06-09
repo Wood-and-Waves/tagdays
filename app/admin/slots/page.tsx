@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import SlotsClient from './SlotsClient'
+import ImportClient from './ImportClient'
 
 export default async function SlotsPage() {
   const supabase = await createClient()
@@ -15,9 +16,12 @@ export default async function SlotsPage() {
     .select('*')
     .order('name', { ascending: true })
 
+  const existingLocationNames = (locations || []).map(l => l.name)
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Slots</h1>
+      <ImportClient existingLocationNames={existingLocationNames} />
       <SlotsClient slots={slots || []} locations={locations || []} />
     </div>
   )

@@ -18,7 +18,6 @@ const twilioClient = twilio(
 export default async function handler() {
   console.log('Running reminder job at', new Date().toISOString())
 
-  // Get reminder config
   const { data: config } = await supabase
     .from('admin_config')
     .select('*')
@@ -30,8 +29,8 @@ export default async function handler() {
   }
 
   const now = new Date()
+  const todayDate = new Date().toISOString().split('T')[0]
 
-  // Get all active signups with slot and location info
   const { data: signups, error } = await supabase
     .from('signups')
     .select('*, slot:slots(*, location:locations(*))')
@@ -49,53 +48,31 @@ export default async function handler() {
     const slot = signup.slot
     if (!slot) continue
 
-    // Build shift datetime
     const shiftTime = new Date(`${slot.date}T${slot.start_time}`)
     const hoursUntilShift = (shiftTime.getTime() - now.getTime()) / (1000 * 60 * 60)
+    const isToday = slot.date === todayDate
 
     const formattedDate = shiftTime.toLocaleDateString('en-US', {
       weekday: 'long', month: 'long', day: 'numeric'
     })
 
-    // Check reminder 1
     if (
       !signup.reminder_1_sent &&
       hoursUntilShift <= config.reminder_1_hours_before &&
       hoursUntilShift > config.reminder_2_hours_before
     ) {
-      await sendReminder({
-        signup,
-        slot,
-        formattedDate,
-        reminderNumber: 1,
-      })
-
-      await supabase
-        .from('signups')
-        .update({ reminder_1_sent: true })
-        .eq('id', signup.id)
-
+      await sendReminder({ signup, slot, formattedDate, isToday: false })
+      await supabase.from('signups').update({ reminder_1_sent: true }).eq('id', signup.id)
       reminder1Sent++
     }
 
-    // Check reminder 2
     if (
       !signup.reminder_2_sent &&
       hoursUntilShift <= config.reminder_2_hours_before &&
       hoursUntilShift > 0
     ) {
-      await sendReminder({
-        signup,
-        slot,
-        formattedDate,
-        reminderNumber: 2,
-      })
-
-      await supabase
-        .from('signups')
-        .update({ reminder_2_sent: true })
-        .eq('id', signup.id)
-
+      await sendReminder({ signup, slot, formattedDate, isToday })
+      await supabase.from('signups').update({ reminder_2_sent: true }).eq('id', signup.id)
       reminder2Sent++
     }
   }
@@ -107,17 +84,34 @@ async function sendReminder({
   signup,
   slot,
   formattedDate,
-  reminderNumber,
+  isToday,
 }: {
   signup: any
   slot: any
   formattedDate: string
-  reminderNumber: number
+  isToday: boolean
 }) {
-  const isToday = reminderNumber === 2
+  const isStudent = signup.role === 'student'
+
   const subject = isToday
-    ? `Reminder: Your Tag Days shift is TODAY!`
-    : `Reminder: Your Tag Days shift is coming up!`
+    ? 'Reminder: Your Tag Days shift is TODAY!'
+    : 'Reminder: Your Tag Days shift is coming up!'
+
+  const studentBullets = `
+    <li>Arrive at the band room 20-30 minutes early</li>
+    <li>Wear your spirit wear</li>
+    <li>Bring your instrument or flags</li>
+    <li>Play music and interact with customers - the more entertaining, the more donations!</li>
+    <li>If on break, ask customers for donations - people are more likely to say yes to a student</li>
+  `
+
+  const parentBullets = `
+    <li>Arrive at the band room 20-30 minutes early</li>
+    <li>You are responsible for collecting donations at the site</li>
+    <li>When all students are playing, ask customers for donations</li>
+    <li>Return all money to the band room at the end of your shift</li>
+    <li>Students will NOT be responsible for transporting money</li>
+  `
 
   const emailHtml = `
     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
@@ -137,15 +131,13 @@ async function sendReminder({
           ${slot.location.address ? `<p style="margin: 0 0 8px; color: #6b7280;">${slot.location.address}</p>` : ''}
           <p style="margin: 0 0 8px;"><strong>Date:</strong> ${formattedDate}</p>
           <p style="margin: 0 0 8px;"><strong>Time:</strong> ${slot.start_time.slice(0, 5)} - ${slot.end_time.slice(0, 5)}</p>
-          <p style="margin: 0;"><strong>Role:</strong> ${signup.role === 'student' ? 'Student' : 'Parent/Adult'}</p>
+          <p style="margin: 0;"><strong>Role:</strong> ${isStudent ? 'Student' : 'Parent/Adult'}</p>
         </div>
 
         <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin: 24px 0;">
           <p style="margin: 0 0 8px; font-weight: bold; color: #991b1b;">Remember:</p>
           <ul style="margin: 0; padding-left: 20px; color: #7f1d1d;">
-            <li>Arrive at the band room 20-30 minutes early</li>
-            <li>Wear your spirit wear</li>
-            <li>Bring your instrument or flags</li>
+            ${isStudent ? studentBullets : parentBullets}
           </ul>
         </div>
 
@@ -158,7 +150,6 @@ async function sendReminder({
     </div>
   `
 
-  // Send email
   if (signup.reminder_preference === 'email' || signup.reminder_preference === 'both') {
     try {
       await resend.emails.send({
@@ -167,13 +158,12 @@ async function sendReminder({
         subject,
         html: emailHtml,
       })
-      console.log(`Reminder ${reminderNumber} email sent to ${signup.email}`)
+      console.log(`Reminder email sent to ${signup.email}`)
     } catch (err) {
       console.error(`Email failed for ${signup.email}:`, err)
     }
   }
 
-  // Send SMS
   if ((signup.reminder_preference === 'sms' || signup.reminder_preference === 'both') && signup.phone) {
     try {
       const smsBody = isToday
@@ -185,7 +175,7 @@ async function sendReminder({
         from: process.env.TWILIO_PHONE_NUMBER!,
         to: signup.phone,
       })
-      console.log(`Reminder ${reminderNumber} SMS sent to ${signup.phone}`)
+      console.log(`Reminder SMS sent to ${signup.phone}`)
     } catch (err) {
       console.error(`SMS failed for ${signup.phone}:`, err)
     }
