@@ -15,9 +15,22 @@ const formatDate = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString('
   weekday: 'short', month: 'short', day: 'numeric'
 })
 
+const formatDateShort = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString('en-US', {
+  weekday: 'short', month: 'short', day: 'numeric'
+})
+
 export default function HomeClient({ slots }: { slots: SlotWithSignups[] }) {
   const router = useRouter()
   const [sortBy, setSortBy] = useState<'time' | 'location'>('time')
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
+
+  // Get unique dates
+  const uniqueDates = [...new Set(slots.map(s => s.date))].sort()
+
+  // Filter by selected date
+  const filteredSlots = selectedDate
+    ? slots.filter(s => s.date === selectedDate)
+    : slots
 
   const getSlotData = (slot: SlotWithSignups) => {
     const activeSignups = slot.signups.filter((s: any) => !s.cancelled)
@@ -34,7 +47,7 @@ export default function HomeClient({ slots }: { slots: SlotWithSignups[] }) {
     if (!allFull) router.push(`/signup/${slot.id}`)
   }
 
-  const byTime = [...slots].sort((a, b) => {
+  const byTime = [...filteredSlots].sort((a, b) => {
     if (a.date !== b.date) return a.date.localeCompare(b.date)
     return a.start_time.localeCompare(b.start_time)
   })
@@ -47,7 +60,7 @@ export default function HomeClient({ slots }: { slots: SlotWithSignups[] }) {
     return acc
   }, {} as Record<string, { label: string, slots: SlotWithSignups[] }>)
 
-  const byLocation = slots.reduce((acc, slot) => {
+  const byLocation = filteredSlots.reduce((acc, slot) => {
     const name = slot.location.name
     if (!acc[name]) acc[name] = { location: slot.location, slots: [] }
     acc[name].slots.push(slot)
@@ -79,7 +92,6 @@ export default function HomeClient({ slots }: { slots: SlotWithSignups[] }) {
               {formatDate(slot.date)} · {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
             </p>
           )}
-
           <div className="mt-1 flex flex-col gap-1 text-xs">
             <div className="flex items-baseline gap-1">
               <span className="text-gray-400 shrink-0">Students:</span>
@@ -118,7 +130,9 @@ export default function HomeClient({ slots }: { slots: SlotWithSignups[] }) {
 
   return (
     <div>
-      <div className="flex gap-2 mb-6">
+      {/* Sort and date filters */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {/* Sort toggles */}
         <button
           onClick={() => setSortBy('time')}
           className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
@@ -139,9 +153,41 @@ export default function HomeClient({ slots }: { slots: SlotWithSignups[] }) {
         >
           By Location
         </button>
+
+        {/* Divider */}
+        <div className="w-px bg-gray-300 mx-1"></div>
+
+        {/* Date filters */}
+        <button
+          onClick={() => setSelectedDate(null)}
+          className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+            selectedDate === null
+              ? 'bg-gray-700 text-white'
+              : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          All Days
+        </button>
+        {uniqueDates.map(date => (
+          <button
+            key={date}
+            onClick={() => setSelectedDate(date)}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+              selectedDate === date
+                ? 'bg-gray-700 text-white'
+                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            {formatDateShort(date)}
+          </button>
+        ))}
       </div>
 
-      {sortBy === 'time' && (
+      {filteredSlots.length === 0 && (
+        <p className="text-center text-gray-400 py-12">No open slots for this day.</p>
+      )}
+
+      {sortBy === 'time' && filteredSlots.length > 0 && (
         <div className="space-y-4">
           {Object.entries(byTimeGrouped).map(([key, { label, slots }]) => (
             <div key={key} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -156,7 +202,7 @@ export default function HomeClient({ slots }: { slots: SlotWithSignups[] }) {
         </div>
       )}
 
-      {sortBy === 'location' && (
+      {sortBy === 'location' && filteredSlots.length > 0 && (
         <div className="space-y-4">
           {Object.entries(byLocation).map(([name, { location, slots }]) => (
             <div key={name} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
