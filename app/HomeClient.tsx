@@ -60,6 +60,8 @@ export default function HomeClient({ slots }: { slots: SlotWithSignups[] }) {
     showDateTime?: boolean
   }) => {
     const { studentSignups, parentSignups, studentsFull, parentsFull, allFull } = getSlotData(slot)
+    const studentsOpen = slot.max_students - studentSignups.length
+    const parentsOpen = slot.max_parents - parentSignups.length
 
     return (
       <div
@@ -77,22 +79,35 @@ export default function HomeClient({ slots }: { slots: SlotWithSignups[] }) {
               {formatDate(slot.date)} · {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
             </p>
           )}
-          <div className="mt-1 flex flex-wrap gap-x-3 text-xs text-gray-500">
-            <span className={studentsFull ? 'text-green-600 font-semibold' : ''}>
-              Students {studentSignups.length}/{slot.max_students}
-              {studentSignups.length > 0 && `: ${studentSignups.map((s: any) => `${s.first_name} ${s.last_name.charAt(0)}.`).join(', ')}`}
-            </span>
-            <span className={parentsFull ? 'text-green-600 font-semibold' : ''}>
-              Parents {parentSignups.length}/{slot.max_parents}
-              {parentSignups.length > 0 && `: ${parentSignups.map((s: any) => `${s.first_name} ${s.last_name.charAt(0)}.`).join(', ')}`}
-            </span>
+
+          <div className="mt-1 flex flex-col gap-1 text-xs">
+            <div className="flex items-baseline gap-1">
+              <span className="text-gray-400 shrink-0">Students:</span>
+              {!studentsFull && (
+                <span className="text-red-600 font-semibold">{studentsOpen} needed</span>
+              )}
+              {studentSignups.length > 0 && (
+                <span className="text-gray-400 ml-1">
+                  {studentSignups.map((s: any) => `${s.first_name} ${s.last_name.charAt(0)}.`).join(', ')}
+                </span>
+              )}
+            </div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-gray-400 shrink-0">Parents:</span>
+              {!parentsFull && (
+                <span className="text-red-600 font-semibold">{parentsOpen} needed</span>
+              )}
+              {parentSignups.length > 0 && (
+                <span className="text-gray-400 ml-1">
+                  {parentSignups.map((s: any) => `${s.first_name} ${s.last_name.charAt(0)}.`).join(', ')}
+                </span>
+              )}
+            </div>
           </div>
         </div>
         <div className="shrink-0">
           {allFull ? (
-            <span className="bg-gray-200 text-gray-600 text-xs font-semibold px-3 py-1 rounded-full">
-              Full
-            </span>
+            <span className="bg-gray-200 text-gray-600 text-xs font-semibold px-3 py-1 rounded-full">Full</span>
           ) : (
             <span className="text-red-700 text-lg">›</span>
           )}
