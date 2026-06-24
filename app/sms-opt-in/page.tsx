@@ -85,9 +85,9 @@ export default function SMSOptInPage() {
                       <div className="w-2 h-2 bg-red-700 rounded-sm opacity-0"></div>
                     </div>
                     <p className="text-sm text-gray-600">
-                      I agree to receive SMS reminders from Huntley Band Boosters about
-                      my volunteer shift. Up to 3 messages per signup. Message and data
-                      rates may apply. Reply STOP to opt out. Reply HELP for help.
+                      I agree to receive recurring text messages from Huntley Band Boosters
+                      about my volunteer shift. Message frequency: up to 3 messages per signup.
+                      Message and data rates may apply. Reply HELP for help, STOP to cancel.
                       View our{' '}
                       <span className="text-red-700 underline">Privacy Policy</span>
                       {' '}and{' '}
