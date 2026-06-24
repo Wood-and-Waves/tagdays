@@ -59,14 +59,16 @@ export default function SignupForm({
       return
     }
 
-    if ((form.reminder_preference === 'sms' || form.reminder_preference === 'both') && !form.sms_consent) {
-      setError('Please check the SMS consent box to receive text reminders.')
+    const wantsSMS = form.reminder_preference === 'sms' || form.reminder_preference === 'both'
+
+    if (wantsSMS && !form.phone) {
+      setError('Please enter a phone number to receive SMS reminders.')
       setLoading(false)
       return
     }
 
-    if ((form.reminder_preference === 'sms' || form.reminder_preference === 'both') && !form.phone) {
-      setError('Please enter a phone number to receive SMS reminders.')
+    if (wantsSMS && !form.sms_consent) {
+      setError('Please check the SMS consent box to receive text reminders.')
       setLoading(false)
       return
     }
@@ -162,6 +164,20 @@ export default function SignupForm({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
+            Phone Number <span className="text-gray-400 font-normal">(optional — for SMS reminders)</span>
+          </label>
+          <input
+            type="tel"
+            name="phone"
+            value={form.phone}
+            onChange={handleChange}
+            placeholder="(555) 555-5555"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             I am a... <span className="text-red-600">*</span>
           </label>
           <select
@@ -193,48 +209,34 @@ export default function SignupForm({
           </select>
         </div>
 
-        {wantsSMS && (
-          <>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phone Number <span className="text-red-600">*</span>
-              </label>
-              <input
-                type="tel"
-                name="phone"
-                value={form.phone}
-                onChange={handleChange}
-                placeholder="(555) 555-5555"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
-            </div>
-
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="sms_consent"
-                  checked={form.sms_consent}
-                  onChange={handleChange}
-                  className="mt-1 h-4 w-4 text-red-700 border-gray-300 rounded"
-                />
-                <span className="text-sm text-gray-600">
-                  I agree to receive SMS reminders from Huntley Band Boosters about
-                  my volunteer shift. Up to 3 messages per signup. Message and data
-                  rates may apply. Reply STOP to opt out. Reply HELP for help.
-                  View our{' '}
-                  <Link href="/privacy" className="text-red-700 underline" target="_blank">
-                    Privacy Policy
-                  </Link>{' '}
-                  and{' '}
-                  <Link href="/terms" className="text-red-700 underline" target="_blank">
-                    Terms of Service
-                  </Link>.
-                </span>
-              </label>
-            </div>
-          </>
-        )}
+        {/* SMS consent — always visible */}
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              name="sms_consent"
+              checked={form.sms_consent}
+              onChange={handleChange}
+              className="mt-1 h-4 w-4 text-red-700 border-gray-300 rounded"
+            />
+            <span className="text-sm text-gray-600">
+              I agree to receive recurring text messages from Huntley Band Boosters
+              about my volunteer shift. Message frequency: up to 3 messages per signup.
+              Message and data rates may apply. Reply HELP for help, STOP to cancel.
+              View our{' '}
+              <Link href="/privacy" className="text-red-700 underline" target="_blank">
+                Privacy Policy
+              </Link>{' '}
+              and{' '}
+              <Link href="/terms" className="text-red-700 underline" target="_blank">
+                Terms of Service
+              </Link>.
+              {!wantsSMS && (
+                <span className="text-gray-400 italic"> (Only required if selecting SMS reminders)</span>
+              )}
+            </span>
+          </label>
+        </div>
 
         <button
           type="submit"

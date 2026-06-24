@@ -64,7 +64,7 @@ export default function SMSOptInPage() {
                 <p className="font-semibold text-gray-900">Volunteer selects SMS reminder preference</p>
                 <p className="text-gray-600 text-sm mt-1">
                   The reminder preference dropdown has three options: <strong>Email only</strong>, <strong>SMS only</strong>, or <strong>Both email and SMS</strong>.
-                  If the volunteer selects "SMS only" or "Both", the phone number field becomes required and the SMS consent checkbox appears.
+                  The SMS consent checkbox is <strong>always visible on the form</strong> regardless of which option is selected.
                 </p>
               </div>
             </div>
@@ -74,7 +74,7 @@ export default function SMSOptInPage() {
               <div>
                 <p className="font-semibold text-gray-900">Volunteer actively checks the SMS consent checkbox</p>
                 <p className="text-gray-600 text-sm mt-1">
-                  A consent checkbox appears that is <strong>unchecked by default</strong>. The volunteer must actively check it before the form can be submitted. The form will not submit without this checkbox being checked when SMS is selected.
+                  The SMS consent checkbox is <strong>always displayed on the form and is unchecked by default</strong>. If the volunteer selects SMS or Both as their reminder preference, they must actively check this box before the form will submit. The form will not submit without this checkbox being checked when SMS is selected.
                 </p>
 
                 {/* Mock consent checkbox */}
