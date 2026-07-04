@@ -209,8 +209,8 @@ export default function SignupForm({
           </select>
         </div>
 
-        {/* SMS consent — always visible */}
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        {/* SMS consent — only shown when SMS selected */}
+        {wantsSMS && <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="checkbox"
@@ -231,12 +231,9 @@ export default function SignupForm({
               <Link href="/terms" className="text-red-700 underline" target="_blank">
                 Terms of Service
               </Link>.
-              {!wantsSMS && (
-                <span className="text-gray-400 italic"> (Only required if selecting SMS reminders)</span>
-              )}
             </span>
           </label>
-        </div>
+        </div>}
 
         <button
           type="submit"

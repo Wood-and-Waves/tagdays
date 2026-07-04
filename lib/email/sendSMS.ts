@@ -40,7 +40,7 @@ export async function sendConfirmationSMS({
     day: 'numeric',
   })
 
-  const message = `Hi ${firstName}! You're signed up for Tag Days 2026. Location: ${locationName}. Date: ${formattedDate}, ${startTime.slice(0, 5)}–${endTime.slice(0, 5)}. Arrive at band room 20-30 min early. Go Raiders!`
+  const message = `Hi ${firstName}! You're signed up for Tag Days 2026. Location: ${locationName}. Date: ${formattedDate}, ${startTime.slice(0, 5)}–${endTime.slice(0, 5)}. Arrive at band room 20-30 min early. Go Raiders! Reply STOP to opt out. - Huntley Band Boosters`
 
   await sendSMS({ to, message })
 }
