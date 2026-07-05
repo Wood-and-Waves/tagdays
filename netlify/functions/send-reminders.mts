@@ -33,7 +33,7 @@ export default async function handler() {
 
   const { data: signups, error } = await supabase
     .from('signups')
-    .select('*, slot:slots(*, location:locations(*))')
+    .select('*, slot:slots(*, location:locations(*), event:events(*))')
     .eq('cancelled', false)
 
   if (error) {
@@ -48,6 +48,9 @@ export default async function handler() {
     const slot = signup.slot
     if (!slot) continue
 
+    const event = slot.event
+    if (!event || !event.is_active) continue
+
     const shiftTime = new Date(`${slot.date}T${slot.start_time}`)
     const hoursUntilShift = (shiftTime.getTime() - now.getTime()) / (1000 * 60 * 60)
     const isToday = slot.date === todayDate
@@ -61,7 +64,7 @@ export default async function handler() {
       hoursUntilShift <= config.reminder_1_hours_before &&
       hoursUntilShift > config.reminder_2_hours_before
     ) {
-      await sendReminder({ signup, slot, formattedDate, isToday: false })
+      await sendReminder({ signup, slot, event, formattedDate, isToday: false })
       await supabase.from('signups').update({ reminder_1_sent: true }).eq('id', signup.id)
       reminder1Sent++
     }
@@ -71,7 +74,7 @@ export default async function handler() {
       hoursUntilShift <= config.reminder_2_hours_before &&
       hoursUntilShift > 0
     ) {
-      await sendReminder({ signup, slot, formattedDate, isToday })
+      await sendReminder({ signup, slot, event, formattedDate, isToday })
       await supabase.from('signups').update({ reminder_2_sent: true }).eq('id', signup.id)
       reminder2Sent++
     }
@@ -83,62 +86,47 @@ export default async function handler() {
 async function sendReminder({
   signup,
   slot,
+  event,
   formattedDate,
   isToday,
 }: {
   signup: any
   slot: any
+  event: any
   formattedDate: string
   isToday: boolean
 }) {
-  const isStudent = signup.role === 'student'
+  const eventName = event.name || 'HHS Band Boosters Event'
+  const locationName = slot.location?.name || 'TBD'
+  const locationAddress = slot.location?.address || null
 
   const subject = isToday
-    ? 'Reminder: Your Tag Days shift is TODAY!'
-    : 'Reminder: Your Tag Days shift is coming up!'
-
-  const studentBullets = `
-    <li>Arrive at the band room 20-30 minutes early</li>
-    <li>Wear your spirit wear</li>
-    <li>Bring your instrument or flags</li>
-    <li>Play music and interact with customers - the more entertaining, the more donations!</li>
-    <li>If on break, ask customers for donations - people are more likely to say yes to a student</li>
-  `
-
-  const parentBullets = `
-    <li>Arrive at the band room 20-30 minutes early</li>
-    <li>You are responsible for collecting donations at the site</li>
-    <li>When all students are playing, ask customers for donations</li>
-    <li>Return all money to the band room at the end of your shift</li>
-    <li>Students will NOT be responsible for transporting money</li>
-  `
+    ? `Reminder: Your ${eventName} shift is TODAY!`
+    : `Reminder: Your ${eventName} shift is coming up!`
 
   const emailHtml = `
     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
       <div style="background-color: #b91c1c; padding: 24px; text-align: center;">
-        <h1 style="color: white; margin: 0;">Tag Days 2026</h1>
+        <h1 style="color: white; margin: 0;">${eventName}</h1>
         <p style="color: #fca5a5; margin: 8px 0 0;">Huntley High School Band Boosters</p>
       </div>
 
       <div style="padding: 32px 24px;">
         <h2 style="color: #111827;">Hi ${signup.first_name}, your shift is coming up!</h2>
         <p style="color: #4b5563;">
-          ${isToday ? 'Your Tag Days shift is TODAY!' : 'This is a reminder about your upcoming Tag Days shift.'}
+          ${isToday ? 'Your shift is TODAY!' : 'This is a reminder about your upcoming volunteer shift.'}
         </p>
 
         <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin: 24px 0;">
-          <p style="margin: 0 0 8px;"><strong>Location:</strong> ${slot.location.name}</p>
-          ${slot.location.address ? `<p style="margin: 0 0 8px; color: #6b7280;">${slot.location.address}</p>` : ''}
+          <p style="margin: 0 0 8px;"><strong>Location:</strong> ${locationName}</p>
+          ${locationAddress ? `<p style="margin: 0 0 8px; color: #6b7280;">${locationAddress}</p>` : ''}
           <p style="margin: 0 0 8px;"><strong>Date:</strong> ${formattedDate}</p>
           <p style="margin: 0 0 8px;"><strong>Time:</strong> ${slot.start_time.slice(0, 5)} - ${slot.end_time.slice(0, 5)}</p>
-          <p style="margin: 0;"><strong>Role:</strong> ${isStudent ? 'Student' : 'Parent/Adult'}</p>
+          <p style="margin: 0;"><strong>Role:</strong> ${signup.role}</p>
         </div>
 
         <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin: 24px 0;">
-          <p style="margin: 0 0 8px; font-weight: bold; color: #991b1b;">Remember:</p>
-          <ul style="margin: 0; padding-left: 20px; color: #7f1d1d;">
-            ${isStudent ? studentBullets : parentBullets}
-          </ul>
+          <p style="margin: 0; color: #7f1d1d;">${event.reminder_notes || 'Please arrive 10-15 minutes early. If your plans change, contact Amy Koegel as soon as possible so we can find a replacement.'}</p>
         </div>
 
         <p style="color: #4b5563;">Questions? Contact Amy Koegel at <a href="mailto:fundraising@huntleybands.com" style="color: #b91c1c;">fundraising@huntleybands.com</a></p>
@@ -153,7 +141,7 @@ async function sendReminder({
   if (signup.reminder_preference === 'email' || signup.reminder_preference === 'both') {
     try {
       await resend.emails.send({
-        from: 'Tag Days 2026 <noreply@hhstagdays.com>',
+        from: `${eventName} <noreply@hhstagdays.com>`,
         to: signup.email,
         subject,
         html: emailHtml,
@@ -167,8 +155,8 @@ async function sendReminder({
   if ((signup.reminder_preference === 'sms' || signup.reminder_preference === 'both') && signup.phone) {
     try {
       const smsBody = isToday
-        ? `Tag Days reminder: Your shift is TODAY at ${slot.start_time.slice(0, 5)} at ${slot.location.name}. Arrive at band room 20-30 min early. Go Raiders! - Huntley Band Boosters`
-        : `Tag Days reminder: Your shift is coming up! ${formattedDate} at ${slot.start_time.slice(0, 5)}, ${slot.location.name}. Reply STOP to opt out. - Huntley Band Boosters`
+        ? `${eventName} reminder: Your shift is TODAY at ${slot.start_time.slice(0, 5)} at ${locationName}. Go Raiders! - Huntley Band Boosters`
+        : `${eventName} reminder: Your shift is coming up! ${formattedDate} at ${slot.start_time.slice(0, 5)}, ${locationName}. Reply STOP to opt out. - Huntley Band Boosters`
 
       await twilioClient.messages.create({
         body: smsBody,

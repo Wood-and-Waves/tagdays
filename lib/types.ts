@@ -8,6 +8,7 @@ export type Event = {
   start_date: string | null
   end_date: string | null
   is_active: boolean
+  reminder_notes: string | null
   created_at: string
 }
 

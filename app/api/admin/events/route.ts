@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { name, slug, description, start_date, end_date, is_active, roles } = await request.json()
+  const { name, slug, description, start_date, end_date, is_active, reminder_notes, roles } = await request.json()
 
   if (!name || !slug) return NextResponse.json({ error: 'Name and slug are required.' }, { status: 400 })
 
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
 
   const { data: event, error } = await adminClient
     .from('events')
-    .insert({ name, slug, description: description || null, start_date: start_date || null, end_date: end_date || null, is_active })
+    .insert({ name, slug, description: description || null, start_date: start_date || null, end_date: end_date || null, is_active, reminder_notes: reminder_notes || null })
     .select()
     .single()
 
@@ -39,7 +39,7 @@ export async function PUT(request: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { id, name, slug, description, start_date, end_date, is_active, roles } = await request.json()
+  const { id, name, slug, description, start_date, end_date, is_active, reminder_notes, roles } = await request.json()
 
   if (!id || !name || !slug) return NextResponse.json({ error: 'ID, name and slug are required.' }, { status: 400 })
 
@@ -47,7 +47,7 @@ export async function PUT(request: Request) {
 
   const { data: event, error } = await adminClient
     .from('events')
-    .update({ name, slug, description: description || null, start_date: start_date || null, end_date: end_date || null, is_active })
+    .update({ name, slug, description: description || null, start_date: start_date || null, end_date: end_date || null, is_active, reminder_notes: reminder_notes || null })
     .eq('id', id)
     .select()
     .single()

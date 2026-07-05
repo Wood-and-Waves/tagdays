@@ -18,6 +18,7 @@ type Event = {
   start_date: string | null
   end_date: string | null
   is_active: boolean
+  reminder_notes: string | null
   event_roles: Role[]
 }
 
@@ -35,6 +36,7 @@ export default function EventsClient({ events }: { events: Event[] }) {
     start_date: '',
     end_date: '',
     is_active: true,
+    reminder_notes: '',
   })
 
   const [roles, setRoles] = useState<{ name: string; max_per_slot: number }[]>([
@@ -42,7 +44,7 @@ export default function EventsClient({ events }: { events: Event[] }) {
   ])
 
   const resetForm = () => {
-    setForm({ name: '', slug: '', description: '', start_date: '', end_date: '', is_active: true })
+    setForm({ name: '', slug: '', description: '', start_date: '', end_date: '', is_active: true, reminder_notes: '' })
     setRoles([{ name: '', max_per_slot: 1 }])
     setEditing(null)
     setShowForm(false)
@@ -58,6 +60,7 @@ export default function EventsClient({ events }: { events: Event[] }) {
       start_date: event.start_date || '',
       end_date: event.end_date || '',
       is_active: event.is_active,
+      reminder_notes: event.reminder_notes || '',
     })
     setRoles(event.event_roles.length > 0
       ? event.event_roles.map(r => ({ name: r.name, max_per_slot: r.max_per_slot }))
@@ -186,6 +189,16 @@ export default function EventsClient({ events }: { events: Event[] }) {
                 onChange={e => setForm({ ...form, description: e.target.value })}
                 placeholder="Brief description shown on event card"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Reminder Instructions</label>
+              <textarea value={form.reminder_notes}
+                onChange={e => setForm({ ...form, reminder_notes: e.target.value })}
+                placeholder="e.g. Wear your spirit wear and bring your instrument. Leave blank to use the default reminder text."
+                rows={3}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
+              <p className="text-xs text-gray-400 mt-1">Shown in the reminder box of confirmation and reminder emails/texts for this event. Leave blank for a generic reminder.</p>
             </div>
 
             <div>
