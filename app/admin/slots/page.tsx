@@ -13,6 +13,7 @@ export default async function SlotsPage({
   const { data: events } = await supabase
     .from('events')
     .select('*')
+    .eq('is_archived', false)
     .order('created_at', { ascending: true })
 
   const selectedEventId = event_id || events?.[0]?.id || ''
@@ -36,12 +37,13 @@ export default async function SlotsPage({
     .order('sort_order', { ascending: true })
 
   const existingLocationNames = (locations || []).map(l => l.name)
+  const selectedEvent = events?.find(e => e.id === selectedEventId)
 
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Slots</h1>
 
-      {events && events.length > 1 && (
+      {events && events.length > 0 && (
         <div className="mb-6 flex gap-2 flex-wrap">
           {events.map(event => (
             <a key={event.id} href={`/admin/slots?event_id=${event.id}`}
@@ -55,7 +57,7 @@ export default async function SlotsPage({
       {selectedEventId ? (
         <>
           <ImportClient existingLocationNames={existingLocationNames} eventId={selectedEventId} />
-          <SlotsClient slots={slots || []} locations={locations || []} roles={roles || []} eventId={selectedEventId} />
+          <SlotsClient slots={slots || []} locations={locations || []} roles={roles || []} eventId={selectedEventId} eventStartDate={selectedEvent?.start_date || null} eventEndDate={selectedEvent?.end_date || null} />
         </>
       ) : (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">

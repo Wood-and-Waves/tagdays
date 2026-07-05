@@ -18,7 +18,9 @@ type Event = {
   start_date: string | null
   end_date: string | null
   is_active: boolean
+  is_archived: boolean
   reminder_notes: string | null
+  faq_content: string | null
   event_roles: Role[]
 }
 
@@ -28,6 +30,7 @@ export default function EventsClient({ events }: { events: Event[] }) {
   const [editing, setEditing] = useState<Event | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showArchived, setShowArchived] = useState(false)
 
   const [form, setForm] = useState({
     name: '',
@@ -37,14 +40,18 @@ export default function EventsClient({ events }: { events: Event[] }) {
     end_date: '',
     is_active: true,
     reminder_notes: '',
+    faq_content: '',
   })
 
   const [roles, setRoles] = useState<{ name: string; max_per_slot: number }[]>([
     { name: '', max_per_slot: 1 }
   ])
 
+  const activeEvents = events.filter(e => !e.is_archived)
+  const archivedEvents = events.filter(e => e.is_archived)
+
   const resetForm = () => {
-    setForm({ name: '', slug: '', description: '', start_date: '', end_date: '', is_active: true, reminder_notes: '' })
+    setForm({ name: '', slug: '', description: '', start_date: '', end_date: '', is_active: true, reminder_notes: '', faq_content: '' })
     setRoles([{ name: '', max_per_slot: 1 }])
     setEditing(null)
     setShowForm(false)
@@ -61,6 +68,7 @@ export default function EventsClient({ events }: { events: Event[] }) {
       end_date: event.end_date || '',
       is_active: event.is_active,
       reminder_notes: event.reminder_notes || '',
+      faq_content: event.faq_content || '',
     })
     setRoles(event.event_roles.length > 0
       ? event.event_roles.map(r => ({ name: r.name, max_per_slot: r.max_per_slot }))
@@ -105,7 +113,7 @@ export default function EventsClient({ events }: { events: Event[] }) {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this event? All slots and signups will also be deleted.')) return
+    if (!confirm('Permanently delete this event? All slots and signups will also be deleted. This cannot be undone.')) return
     await fetch('/api/admin/events', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
@@ -119,6 +127,25 @@ export default function EventsClient({ events }: { events: Event[] }) {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...event, is_active: !event.is_active, roles: event.event_roles }),
+    })
+    router.refresh()
+  }
+
+  const handleArchive = async (event: Event) => {
+    if (!confirm(`Archive "${event.name}"? It will be hidden from the dashboard, slots, and signups tabs, but its data will be kept and you can restore it later.`)) return
+    await fetch('/api/admin/events', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...event, is_active: false, is_archived: true, roles: event.event_roles }),
+    })
+    router.refresh()
+  }
+
+  const handleRestore = async (event: Event) => {
+    await fetch('/api/admin/events', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...event, is_archived: false, roles: event.event_roles }),
     })
     router.refresh()
   }
@@ -202,6 +229,16 @@ export default function EventsClient({ events }: { events: Event[] }) {
             </div>
 
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">FAQ Content</label>
+              <textarea value={form.faq_content}
+                onChange={e => setForm({ ...form, faq_content: e.target.value })}
+                placeholder="Write the FAQ content for this event's public FAQ page. Leave blank to hide the FAQ link for this event."
+                rows={8}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
+              <p className="text-xs text-gray-400 mt-1">Shown on this event's public FAQ page. Leave blank and no FAQ link will appear for this event.</p>
+            </div>
+
+            <div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={form.is_active}
                   onChange={e => setForm({ ...form, is_active: e.target.checked })}
@@ -260,14 +297,14 @@ export default function EventsClient({ events }: { events: Event[] }) {
         </div>
       )}
 
-      {/* Events list */}
+      {/* Active events list */}
       <div className="space-y-4">
-        {events.length === 0 && (
+        {activeEvents.length === 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
             <p className="text-gray-500">No events yet. Create your first event to get started.</p>
           </div>
         )}
-        {events.map(event => (
+        {activeEvents.map(event => (
           <div key={event.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <div className="flex justify-between items-start">
               <div>
@@ -306,6 +343,10 @@ export default function EventsClient({ events }: { events: Event[] }) {
                   className="text-sm text-gray-600 hover:text-gray-800 font-medium">
                   Edit
                 </button>
+                <button onClick={() => handleArchive(event)}
+                  className="text-sm text-orange-600 hover:text-orange-800 font-medium">
+                  Archive
+                </button>
                 <button onClick={() => handleDelete(event.id)}
                   className="text-sm text-red-600 hover:text-red-800 font-medium">
                   Delete
@@ -315,6 +356,52 @@ export default function EventsClient({ events }: { events: Event[] }) {
           </div>
         ))}
       </div>
+
+      {/* Archived events */}
+      {archivedEvents.length > 0 && (
+        <div className="mt-8">
+          <button
+            onClick={() => setShowArchived(!showArchived)}
+            className="text-sm text-gray-500 hover:text-gray-700 font-medium mb-3"
+          >
+            {showArchived ? '▾' : '▸'} Show Archived Events ({archivedEvents.length})
+          </button>
+
+          {showArchived && (
+            <div className="space-y-3">
+              {archivedEvents.map(event => (
+                <div key={event.id} className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h2 className="font-semibold text-gray-600">{event.name}</h2>
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-200 text-gray-500">
+                          Archived
+                        </span>
+                      </div>
+                      {event.start_date && (
+                        <p className="text-sm text-gray-400">
+                          {new Date(event.start_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      <button onClick={() => handleRestore(event)}
+                        className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                        Restore
+                      </button>
+                      <button onClick={() => handleDelete(event.id)}
+                        className="text-sm text-red-600 hover:text-red-800 font-medium">
+                        Delete Permanently
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function SignupsClient({ signups }: { signups: any[] }) {
+export default function SignupsClient({ signups, eventId }: { signups: any[]; eventId: string }) {
   const router = useRouter()
   const [filter, setFilter] = useState('')
   const [loading, setLoading] = useState<string | null>(null)
@@ -53,7 +53,7 @@ export default function SignupsClient({ signups }: { signups: any[] }) {
         />
       </div>
       <div className="mb-4">
-        <a href="/api/admin/export" className="inline-block bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition font-semibold text-sm">Export CSV</a>
+        <a href={`/api/admin/export?event_id=${eventId}`} className="inline-block bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition font-semibold text-sm">Export CSV</a>
       </div>
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <table className="w-full text-sm">

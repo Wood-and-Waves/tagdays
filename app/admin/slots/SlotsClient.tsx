@@ -22,11 +22,15 @@ export default function SlotsClient({
   locations,
   roles,
   eventId,
+  eventStartDate,
+  eventEndDate,
 }: {
   slots: SlotWithSignups[]
   locations: Location[]
   roles: EventRole[]
   eventId: string
+  eventStartDate: string | null
+  eventEndDate: string | null
 }) {
   const router = useRouter()
   const [mode, setMode] = useState<'none' | 'single' | 'bulk'>('none')
@@ -168,6 +172,7 @@ export default function SlotsClient({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Date <span className="text-red-600">*</span></label>
                 <input type="date" required value={bulk.date} onChange={e => setBulk({ ...bulk, date: e.target.value })}
+                  min={eventStartDate || undefined} max={eventEndDate || undefined}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
               </div>
               <div>
@@ -234,6 +239,7 @@ export default function SlotsClient({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Date <span className="text-red-600">*</span></label>
                 <input type="date" required value={single.date} onChange={e => setSingle({ ...single, date: e.target.value })}
+                  min={eventStartDate || undefined} max={eventEndDate || undefined}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
               </div>
               <div>

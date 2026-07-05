@@ -58,6 +58,11 @@ export default async function EventPage({
               {formatDateRange(event.start_date, event.end_date)}
             </p>
           )}
+          {event.faq_content && (
+            <Link href={`/events/${slug}/faq`} className="text-sm underline text-red-200 hover:text-white mt-2 inline-block">
+              FAQ
+            </Link>
+          )}
         </div>
       </header>
 

@@ -11,6 +11,7 @@ export default async function AdminDashboard({
   const { data: events } = await supabase
     .from('events')
     .select('*')
+    .eq('is_archived', false)
     .order('created_at', { ascending: true })
 
   const selectedEventId = event_id || events?.[0]?.id || ''
@@ -63,7 +64,7 @@ export default async function AdminDashboard({
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
 
-      {events && events.length > 1 && (
+      {events && events.length > 0 && (
         <div className="mb-6 flex gap-2 flex-wrap">
           {events.map(event => (
             <a key={event.id} href={`/admin?event_id=${event.id}`}

@@ -15,10 +15,6 @@ export default function ConfigClient({ config }: { config: AdminConfig }) {
     event_year: config.event_year,
   })
 
-  const [deleteConfirm, setDeleteConfirm] = useState('')
-  const [deleteLoading, setDeleteLoading] = useState(false)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -41,30 +37,6 @@ export default function ConfigClient({ config }: { config: AdminConfig }) {
 
     setSuccess(true)
     setLoading(false)
-  }
-
-  const handleDelete = async () => {
-    setDeleteLoading(true)
-    setDeleteError(null)
-
-    const res = await fetch('/api/admin/archive', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ confirmation: deleteConfirm }),
-    })
-
-    const data = await res.json()
-
-    if (!res.ok) {
-      setDeleteError(data.error || 'Something went wrong.')
-      setDeleteLoading(false)
-      return
-    }
-
-    router.refresh()
-    setDeleteConfirm('')
-    setDeleteLoading(false)
-    alert('All data has been cleared successfully.')
   }
 
   return (
@@ -156,44 +128,6 @@ export default function ConfigClient({ config }: { config: AdminConfig }) {
             {loading ? 'Saving...' : 'Save Settings'}
           </button>
         </form>
-      </div>
-
-      {/* Danger zone */}
-      <div className="bg-white rounded-lg shadow-sm border border-red-200 p-6">
-        <h2 className="font-bold text-lg text-red-700 mb-2">Danger Zone</h2>
-        <p className="text-sm text-gray-500 mb-4">
-          Clear all locations, slots, and signups. Use this to reset the site for a new year.
-          This action cannot be undone.
-        </p>
-
-        {deleteError && (
-          <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 mb-4 text-sm">
-            {deleteError}
-          </div>
-        )}
-
-        <div className="space-y-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Type <span className="font-mono font-bold">DELETE ALL DATA</span> to confirm
-            </label>
-            <input
-              type="text"
-              value={deleteConfirm}
-              onChange={e => setDeleteConfirm(e.target.value)}
-              placeholder="DELETE ALL DATA"
-              className="w-full border border-red-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-            />
-          </div>
-
-          <button
-            onClick={handleDelete}
-            disabled={deleteLoading || deleteConfirm !== 'DELETE ALL DATA'}
-            className="bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800 transition text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {deleteLoading ? 'Clearing...' : 'Clear All Data'}
-          </button>
-        </div>
       </div>
     </div>
   )
