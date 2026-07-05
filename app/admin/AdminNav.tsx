@@ -4,6 +4,7 @@ import { useState } from 'react'
 
 const links = [
   { href: '/admin', label: 'Dashboard' },
+  { href: '/admin/events', label: 'Events' },
   { href: '/admin/locations', label: 'Locations' },
   { href: '/admin/slots', label: 'Slots' },
   { href: '/admin/signups', label: 'Signups' },
@@ -18,7 +19,7 @@ export default function AdminNav() {
   return (
     <nav className="bg-gray-900 text-white shadow-md">
       <div className="px-6 py-4 flex justify-between items-center">
-        <span className="font-bold text-red-400">Tag Days Admin</span>
+        <span className="font-bold text-red-400">HHS Band Boosters Admin</span>
 
         <div className="hidden md:flex items-center gap-6">
           {links.map(link => (

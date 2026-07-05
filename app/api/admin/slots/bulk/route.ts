@@ -6,13 +6,12 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { location_id, date, start_time, end_time, max_students, max_parents } = await request.json()
+  const { event_id, location_id, date, start_time, end_time } = await request.json()
 
-  if (!location_id || !date || !start_time || !end_time) {
+  if (!event_id || !date || !start_time || !end_time) {
     return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
   }
 
-  // Generate 2-hour slots between start and end time
   const slots = []
   let current = start_time
 
@@ -23,12 +22,11 @@ export async function POST(request: Request) {
     if (next > end_time) break
 
     slots.push({
-      location_id,
+      event_id,
+      location_id: location_id || null,
       date,
       start_time: current,
       end_time: next,
-      max_students,
-      max_parents,
     })
 
     current = next

@@ -26,6 +26,7 @@ export async function sendConfirmationSMS({
   date,
   startTime,
   endTime,
+  eventName,
 }: {
   to: string
   firstName: string
@@ -33,6 +34,7 @@ export async function sendConfirmationSMS({
   date: string
   startTime: string
   endTime: string
+  eventName: string
 }) {
   const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
     weekday: 'short',
@@ -40,7 +42,7 @@ export async function sendConfirmationSMS({
     day: 'numeric',
   })
 
-  const message = `Hi ${firstName}! You're signed up for Tag Days 2026. Location: ${locationName}. Date: ${formattedDate}, ${startTime.slice(0, 5)}–${endTime.slice(0, 5)}. Arrive at band room 20-30 min early. Go Raiders! Reply STOP to opt out. - Huntley Band Boosters`
+  const message = `Hi ${firstName}! You're signed up for ${eventName}. Location: ${locationName}. Date: ${formattedDate}, ${startTime.slice(0, 5)}–${endTime.slice(0, 5)}. Arrive 20-30 min early. Reply STOP to opt out. - Huntley Band Boosters`
 
   await sendSMS({ to, message })
 }

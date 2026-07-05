@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { SlotWithSignups } from '@/lib/types'
+import { SlotWithSignups, EventRole } from '@/lib/types'
 
 const formatTime = (t: string) => {
   const [h, m] = t.slice(0, 5).split(':').map(Number)
@@ -15,36 +15,43 @@ const formatDate = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString('
   weekday: 'short', month: 'short', day: 'numeric'
 })
 
-const formatDateShort = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString('en-US', {
-  weekday: 'short', month: 'short', day: 'numeric'
-})
-
-export default function HomeClient({ slots }: { slots: SlotWithSignups[] }) {
+export default function EventClient({
+  slots,
+  roles,
+  eventSlug,
+}: {
+  slots: SlotWithSignups[]
+  roles: EventRole[]
+  eventSlug: string
+}) {
   const router = useRouter()
   const [sortBy, setSortBy] = useState<'time' | 'location'>('time')
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
-  // Get unique dates
   const uniqueDates = [...new Set(slots.map(s => s.date))].sort()
 
-  // Filter by selected date
   const filteredSlots = selectedDate
     ? slots.filter(s => s.date === selectedDate)
     : slots
 
   const getSlotData = (slot: SlotWithSignups) => {
     const activeSignups = slot.signups.filter((s: any) => !s.cancelled)
-    const studentSignups = activeSignups.filter((s: any) => s.role === 'student')
-    const parentSignups = activeSignups.filter((s: any) => s.role === 'parent')
-    const studentsFull = studentSignups.length >= slot.max_students
-    const parentsFull = parentSignups.length >= slot.max_parents
-    const allFull = studentsFull && parentsFull
-    return { studentSignups, parentSignups, studentsFull, parentsFull, allFull }
+    const roleData = roles.map(role => {
+      const roleSignups = activeSignups.filter((s: any) => s.role === role.name)
+      return {
+        role,
+        signups: roleSignups,
+        open: role.max_per_slot - roleSignups.length,
+        full: roleSignups.length >= role.max_per_slot,
+      }
+    })
+    const allFull = roleData.every(r => r.full)
+    return { roleData, allFull }
   }
 
   const handleSlotClick = (slot: SlotWithSignups) => {
     const { allFull } = getSlotData(slot)
-    if (!allFull) router.push(`/signup/${slot.id}`)
+    if (!allFull) router.push(`/events/${eventSlug}/signup/${slot.id}`)
   }
 
   const byTime = [...filteredSlots].sort((a, b) => {
@@ -61,7 +68,7 @@ export default function HomeClient({ slots }: { slots: SlotWithSignups[] }) {
   }, {} as Record<string, { label: string, slots: SlotWithSignups[] }>)
 
   const byLocation = filteredSlots.reduce((acc, slot) => {
-    const name = slot.location.name
+    const name = slot.location?.name || 'General'
     if (!acc[name]) acc[name] = { location: slot.location, slots: [] }
     acc[name].slots.push(slot)
     return acc
@@ -72,9 +79,7 @@ export default function HomeClient({ slots }: { slots: SlotWithSignups[] }) {
     showLocation?: boolean
     showDateTime?: boolean
   }) => {
-    const { studentSignups, parentSignups, studentsFull, parentsFull, allFull } = getSlotData(slot)
-    const studentsOpen = slot.max_students - studentSignups.length
-    const parentsOpen = slot.max_parents - parentSignups.length
+    const { roleData, allFull } = getSlotData(slot)
 
     return (
       <div
@@ -85,7 +90,9 @@ export default function HomeClient({ slots }: { slots: SlotWithSignups[] }) {
       >
         <div className="min-w-0 flex-1">
           {showLocation && (
-            <p className="font-semibold text-gray-900 text-sm truncate">{slot.location.name}</p>
+            <p className="font-semibold text-gray-900 text-sm truncate">
+              {slot.location?.name || 'General'}
+            </p>
           )}
           {showDateTime && (
             <p className="font-semibold text-gray-900 text-sm">
@@ -93,28 +100,19 @@ export default function HomeClient({ slots }: { slots: SlotWithSignups[] }) {
             </p>
           )}
           <div className="mt-1 flex flex-col gap-1 text-xs">
-            <div className="flex items-baseline gap-1">
-              <span className="text-gray-400 shrink-0">Students:</span>
-              {!studentsFull && (
-                <span className="text-red-600 font-semibold">{studentsOpen} needed</span>
-              )}
-              {studentSignups.length > 0 && (
-                <span className="text-gray-400 ml-1">
-                  {studentSignups.map((s: any) => `${s.first_name} ${s.last_name.charAt(0)}.`).join(', ')}
-                </span>
-              )}
-            </div>
-            <div className="flex items-baseline gap-1">
-              <span className="text-gray-400 shrink-0">Parents:</span>
-              {!parentsFull && (
-                <span className="text-red-600 font-semibold">{parentsOpen} needed</span>
-              )}
-              {parentSignups.length > 0 && (
-                <span className="text-gray-400 ml-1">
-                  {parentSignups.map((s: any) => `${s.first_name} ${s.last_name.charAt(0)}.`).join(', ')}
-                </span>
-              )}
-            </div>
+            {roleData.map(({ role, signups, open, full }) => (
+              <div key={role.id} className="flex items-baseline gap-1">
+                <span className="text-gray-400 shrink-0">{role.name}:</span>
+                {!full && (
+                  <span className="text-red-600 font-semibold">{open} needed</span>
+                )}
+                {signups.length > 0 && (
+                  <span className="text-gray-400 ml-1">
+                    {signups.map((s: any) => `${s.first_name} ${s.last_name.charAt(0)}.`).join(', ')}
+                  </span>
+                )}
+              </div>
+            ))}
           </div>
         </div>
         <div className="shrink-0">
@@ -128,11 +126,17 @@ export default function HomeClient({ slots }: { slots: SlotWithSignups[] }) {
     )
   }
 
+  if (slots.length === 0) {
+    return (
+      <p className="text-center text-gray-500 mt-16 text-lg">
+        Schedule coming soon. Check back later!
+      </p>
+    )
+  }
+
   return (
     <div>
-      {/* Sort and date filters */}
       <div className="flex flex-wrap gap-2 mb-6">
-        {/* Sort toggles */}
         <button
           onClick={() => setSortBy('time')}
           className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
@@ -153,11 +157,7 @@ export default function HomeClient({ slots }: { slots: SlotWithSignups[] }) {
         >
           By Location
         </button>
-
-        {/* Divider */}
         <div className="w-px bg-gray-300 mx-1"></div>
-
-        {/* Date filters */}
         <button
           onClick={() => setSelectedDate(null)}
           className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
@@ -178,7 +178,7 @@ export default function HomeClient({ slots }: { slots: SlotWithSignups[] }) {
                 : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
           >
-            {formatDateShort(date)}
+            {formatDate(date)}
           </button>
         ))}
       </div>
@@ -208,8 +208,8 @@ export default function HomeClient({ slots }: { slots: SlotWithSignups[] }) {
             <div key={name} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
                 <h2 className="font-bold text-gray-900">{name}</h2>
-                {location.address && <p className="text-sm text-gray-500">{location.address}</p>}
-                {location.notes && <p className="text-sm text-yellow-600 mt-1">{location.notes}</p>}
+                {location?.address && <p className="text-sm text-gray-500">{location.address}</p>}
+                {location?.notes && <p className="text-sm text-yellow-600 mt-1">{location.notes}</p>}
               </div>
               {slots.map(slot => (
                 <SlotCard key={slot.id} slot={slot} showDateTime={true} />

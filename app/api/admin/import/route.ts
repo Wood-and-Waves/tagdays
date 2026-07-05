@@ -7,10 +7,14 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { rows } = await request.json()
+  const { rows, event_id } = await request.json()
 
   if (!rows || !Array.isArray(rows) || rows.length === 0) {
     return NextResponse.json({ error: 'No data provided.' }, { status: 400 })
+  }
+
+  if (!event_id) {
+    return NextResponse.json({ error: 'No event selected.' }, { status: 400 })
   }
 
   const adminClient = createAdminClient()
@@ -21,7 +25,7 @@ export async function POST(request: Request) {
   const errors: string[] = []
 
   for (const row of rows) {
-    const { location_name, address, notes, date, start_time, end_time, max_students, max_parents } = row
+    const { location_name, address, notes, date, start_time, end_time } = row
 
     if (!location_name || !date || !start_time || !end_time) {
       errors.push(`Skipping row with missing required fields: ${JSON.stringify(row)}`)
@@ -71,6 +75,7 @@ export async function POST(request: Request) {
         .from('slots')
         .select('id')
         .eq('location_id', locationId)
+        .eq('event_id', event_id)
         .eq('date', date.trim())
         .eq('start_time', current)
         .single()
@@ -82,11 +87,10 @@ export async function POST(request: Request) {
           .from('slots')
           .insert({
             location_id: locationId,
+            event_id,
             date: date.trim(),
             start_time: current,
             end_time: next,
-            max_students: parseInt(max_students) || 2,
-            max_parents: parseInt(max_parents) || 1,
           })
 
         if (slotError) {

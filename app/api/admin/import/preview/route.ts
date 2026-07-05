@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { rows } = await request.json()
+  const { rows, event_id } = await request.json()
   const adminClient = createAdminClient()
 
   const locationSummary: Record<string, {
@@ -23,7 +23,6 @@ export async function POST(request: Request) {
     if (!location_name || !date || !start_time || !end_time) continue
 
     if (!locationSummary[location_name]) {
-      // Check if location exists
       const { data: existingLoc } = await adminClient
         .from('locations')
         .select('id')
@@ -39,7 +38,6 @@ export async function POST(request: Request) {
       }
     }
 
-    // Get location id if exists
     const { data: loc } = await adminClient
       .from('locations')
       .select('id')
@@ -61,6 +59,7 @@ export async function POST(request: Request) {
           .from('slots')
           .select('id')
           .eq('location_id', loc.id)
+          .eq('event_id', event_id)
           .eq('date', date.trim())
           .eq('start_time', current)
           .single()

@@ -8,7 +8,7 @@ Jewel - East Door,11500 Haligus Rd Huntley IL,,2026-07-10,08:00,18:00,3,1
 Jewel - West Door,11500 Haligus Rd Huntley IL,,2026-07-10,08:00,18:00,3,1
 Culvers,12160 Ridgefield Pkwy Huntley IL,Cover both entrance and drive-thru,2026-07-11,10:00,16:00,2,1`
 
-export default function ImportClient({ existingLocationNames }: { existingLocationNames: string[] }) {
+export default function ImportClient({ existingLocationNames, eventId }: { existingLocationNames: string[], eventId: string }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [csvText, setCsvText] = useState('')
@@ -47,7 +47,7 @@ export default function ImportClient({ existingLocationNames }: { existingLocati
     const res = await fetch('/api/admin/import/preview', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rows }),
+      body: JSON.stringify({ rows, event_id: eventId }),
     })
 
     const data = await res.json()
@@ -71,7 +71,7 @@ export default function ImportClient({ existingLocationNames }: { existingLocati
     const res = await fetch('/api/admin/import', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rows: parsedRows }),
+      body: JSON.stringify({ rows: parsedRows, event_id: eventId }),
     })
 
     const data = await res.json()

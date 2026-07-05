@@ -13,9 +13,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
   }
 
+  // Get slot with event and location
   const { data: slot, error: slotError } = await supabase
     .from('slots')
-    .select('*, signups(*), location:locations(*)')
+    .select('*, location:locations(*), event:events(*)')
     .eq('id', slot_id)
     .single()
 
@@ -23,22 +24,35 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Slot not found.' }, { status: 404 })
   }
 
-  const activeSignups = slot.signups.filter((s: any) => !s.cancelled)
-  const studentSignups = activeSignups.filter((s: any) => s.role === 'student')
-  const parentSignups = activeSignups.filter((s: any) => s.role === 'parent')
+  // Get event roles
+  const { data: roles } = await supabase
+    .from('event_roles')
+    .select('*')
+    .eq('event_id', slot.event_id)
 
-  if (role === 'student' && studentSignups.length >= slot.max_students) {
-    return NextResponse.json({ error: 'Student spots for this shift are full.' }, { status: 400 })
+  // Get current signups for capacity check
+  const { data: existingSignups } = await supabase
+    .from('signups')
+    .select('*')
+    .eq('slot_id', slot_id)
+    .eq('cancelled', false)
+
+  const roleConfig = roles?.find(r => r.name === role)
+  if (!roleConfig) {
+    return NextResponse.json({ error: 'Invalid role for this event.' }, { status: 400 })
   }
 
-  if (role === 'parent' && parentSignups.length >= slot.max_parents) {
-    return NextResponse.json({ error: 'Parent spots for this shift are full.' }, { status: 400 })
+  const roleSignups = (existingSignups || []).filter(s => s.role === role)
+  if (roleSignups.length >= roleConfig.max_per_slot) {
+    return NextResponse.json({ error: `${role} spots for this shift are full.` }, { status: 400 })
   }
 
+  // Insert signup
   const { data: signup, error: insertError } = await supabase
     .from('signups')
     .insert({
       slot_id,
+      event_role_id: roleConfig.id,
       first_name,
       last_name,
       email,
@@ -56,18 +70,23 @@ export async function POST(request: Request) {
 
   console.log('Signup saved, attempting notifications to:', email)
 
+  const eventName = slot.event?.name || 'HHS Band Boosters Event'
+  const locationName = slot.location?.name || 'TBD'
+  const locationAddress = slot.location?.address || null
+
   // Send confirmation email
   if (reminder_preference === 'email' || reminder_preference === 'both') {
     try {
       await sendConfirmationEmail({
         to: email,
         firstName: first_name,
-        locationName: slot.location.name,
-        address: slot.location.address,
+        locationName,
+        address: locationAddress,
         date: slot.date,
         startTime: slot.start_time,
         endTime: slot.end_time,
         role,
+        eventName,
       })
       console.log('Email sent successfully')
       await supabase.from('signups').update({ confirmation_sent: true }).eq('id', signup.id)
@@ -82,10 +101,11 @@ export async function POST(request: Request) {
       await sendConfirmationSMS({
         to: phone,
         firstName: first_name,
-        locationName: slot.location.name,
+        locationName,
         date: slot.date,
         startTime: slot.start_time,
         endTime: slot.end_time,
+        eventName,
       })
       console.log('SMS sent successfully')
     } catch (smsError) {
