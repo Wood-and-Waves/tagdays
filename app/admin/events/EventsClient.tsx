@@ -160,7 +160,7 @@ export default function EventsClient({ events }: { events: Event[] }) {
     <div>
       {!showForm && (
         <button onClick={() => setShowForm(true)}
-          className="mb-6 bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800 transition font-semibold text-sm">
+          className="mb-6 bg-brand-700 text-white px-4 py-2 rounded-lg hover:bg-brand-800 transition font-semibold text-sm">
           + Create Event
         </button>
       )}
@@ -172,41 +172,41 @@ export default function EventsClient({ events }: { events: Event[] }) {
           </h2>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 mb-4 text-sm">{error}</div>
+            <div className="bg-brand-50 border border-brand-200 text-brand-700 rounded-lg p-3 mb-4 text-sm">{error}</div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Event Name <span className="text-red-600">*</span>
+                  Event Name <span className="text-brand-600">*</span>
                 </label>
                 <input type="text" required value={form.name}
                   onChange={e => handleNameChange(e.target.value)}
                   placeholder="Tag Days 2026"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  URL Slug <span className="text-red-600">*</span>
+                  URL Slug <span className="text-brand-600">*</span>
                 </label>
                 <input type="text" required value={form.slug}
                   onChange={e => setForm({ ...form, slug: e.target.value })}
                   placeholder="tag-days-2026"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                 <p className="text-xs text-gray-400 mt-1">hhstagdays.com/events/{form.slug || 'slug'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
                 <input type="date" value={form.start_date}
                   onChange={e => setForm({ ...form, start_date: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
                 <input type="date" value={form.end_date}
                   onChange={e => setForm({ ...form, end_date: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
               </div>
             </div>
 
@@ -215,7 +215,7 @@ export default function EventsClient({ events }: { events: Event[] }) {
               <input type="text" value={form.description}
                 onChange={e => setForm({ ...form, description: e.target.value })}
                 placeholder="Brief description shown on event card"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
 
             <div>
@@ -224,7 +224,7 @@ export default function EventsClient({ events }: { events: Event[] }) {
                 onChange={e => setForm({ ...form, reminder_notes: e.target.value })}
                 placeholder="e.g. Wear your spirit wear and bring your instrument. Leave blank to use the default reminder text."
                 rows={3}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
               <p className="text-xs text-gray-400 mt-1">Shown in the reminder box of confirmation and reminder emails/texts for this event. Leave blank for a generic reminder.</p>
             </div>
 
@@ -234,7 +234,7 @@ export default function EventsClient({ events }: { events: Event[] }) {
                 onChange={e => setForm({ ...form, faq_content: e.target.value })}
                 placeholder="Write the FAQ content for this event's public FAQ page. Leave blank to hide the FAQ link for this event."
                 rows={8}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
               <p className="text-xs text-gray-400 mt-1">Shown on this event's public FAQ page. Leave blank and no FAQ link will appear for this event.</p>
             </div>
 
@@ -242,7 +242,7 @@ export default function EventsClient({ events }: { events: Event[] }) {
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={form.is_active}
                   onChange={e => setForm({ ...form, is_active: e.target.checked })}
-                  className="h-4 w-4 text-red-700 border-gray-300 rounded" />
+                  className="h-4 w-4 text-brand-700 border-gray-300 rounded" />
                 <span className="text-sm font-medium text-gray-700">Active (visible to public)</span>
               </label>
             </div>
@@ -251,10 +251,10 @@ export default function EventsClient({ events }: { events: Event[] }) {
             <div>
               <div className="flex justify-between items-center mb-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  Volunteer Roles <span className="text-red-600">*</span>
+                  Volunteer Roles <span className="text-brand-600">*</span>
                 </label>
                 <button type="button" onClick={addRole}
-                  className="text-sm text-red-700 font-semibold hover:text-red-800">
+                  className="text-sm text-brand-700 font-semibold hover:text-brand-800">
                   + Add Role
                 </button>
               </div>
@@ -264,16 +264,16 @@ export default function EventsClient({ events }: { events: Event[] }) {
                     <input type="text" value={role.name}
                       onChange={e => updateRole(i, 'name', e.target.value)}
                       placeholder="e.g. Student, Parent, Chaperone"
-                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                     <div className="flex items-center gap-2 shrink-0">
                       <label className="text-xs text-gray-500">Max per slot:</label>
                       <input type="number" min={1} value={role.max_per_slot}
                         onChange={e => updateRole(i, 'max_per_slot', parseInt(e.target.value))}
-                        className="w-16 border border-gray-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
+                        className="w-16 border border-gray-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                     </div>
                     {roles.length > 1 && (
                       <button type="button" onClick={() => removeRole(i)}
-                        className="text-red-600 hover:text-red-800 text-sm font-semibold shrink-0">
+                        className="text-brand-600 hover:text-brand-800 text-sm font-semibold shrink-0">
                         Remove
                       </button>
                     )}
@@ -285,7 +285,7 @@ export default function EventsClient({ events }: { events: Event[] }) {
 
             <div className="flex gap-3">
               <button type="submit" disabled={loading}
-                className="bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800 transition text-sm font-semibold disabled:opacity-50">
+                className="bg-brand-700 text-white px-4 py-2 rounded-lg hover:bg-brand-800 transition text-sm font-semibold disabled:opacity-50">
                 {loading ? 'Saving...' : editing ? 'Save Changes' : 'Create Event'}
               </button>
               <button type="button" onClick={resetForm}
@@ -348,7 +348,7 @@ export default function EventsClient({ events }: { events: Event[] }) {
                   Archive
                 </button>
                 <button onClick={() => handleDelete(event.id)}
-                  className="text-sm text-red-600 hover:text-red-800 font-medium">
+                  className="text-sm text-brand-600 hover:text-brand-800 font-medium">
                   Delete
                 </button>
               </div>
@@ -391,7 +391,7 @@ export default function EventsClient({ events }: { events: Event[] }) {
                         Restore
                       </button>
                       <button onClick={() => handleDelete(event.id)}
-                        className="text-sm text-red-600 hover:text-red-800 font-medium">
+                        className="text-sm text-brand-600 hover:text-brand-800 font-medium">
                         Delete Permanently
                       </button>
                     </div>

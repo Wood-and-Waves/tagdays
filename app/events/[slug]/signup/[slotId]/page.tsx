@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
+import SiteHeader from '@/app/components/SiteHeader'
+import { getEffectiveCapacity } from '@/lib/capacity'
+import SiteFooter from '@/app/components/SiteFooter'
 import EventSignupForm from './EventSignupForm'
 
 export default async function EventSignupPage({
@@ -21,7 +23,7 @@ export default async function EventSignupPage({
 
   const { data: slot } = await supabase
     .from('slots')
-    .select('*, location:locations(*), signups(*)')
+    .select('*, location:locations(*), signups(*), role_capacities:slot_role_capacities(*)')
     .eq('id', slotId)
     .single()
 
@@ -37,11 +39,12 @@ export default async function EventSignupPage({
 
   const roleAvailability = (roles || []).map(role => {
     const filled = activeSignups.filter((s: any) => s.role === role.name).length
+    const effectiveMax = getEffectiveCapacity(role, slot.role_capacities)
     return {
       ...role,
       filled,
-      available: role.max_per_slot - filled,
-      full: filled >= role.max_per_slot,
+      available: effectiveMax - filled,
+      full: filled >= effectiveMax,
     }
   })
 
@@ -53,18 +56,15 @@ export default async function EventSignupPage({
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <header className="bg-red-700 text-white py-6 px-4 shadow-md">
-        <div className="max-w-2xl mx-auto">
-          <Link href={`/events/${slug}`} className="text-red-200 text-sm hover:text-white transition mb-2 block">
-            ← Back to {event.name}
-          </Link>
-          <h1 className="text-2xl font-bold">Sign Up</h1>
-          <p className="text-red-200 mt-1">{event.name}</p>
-        </div>
-      </header>
+    <main className="min-h-screen bg-gray-50 flex flex-col">
+      <SiteHeader
+        title="Sign Up"
+        subtitle={event.name}
+        backHref={`/events/${slug}`}
+        backLabel={event.name}
+      />
 
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="max-w-2xl mx-auto px-4 py-8 flex-1 w-full">
         {/* Slot info */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
           <h2 className="font-bold text-lg text-gray-900">
@@ -89,7 +89,7 @@ export default async function EventSignupPage({
                 {role.full ? (
                   <span className="text-gray-400">Full</span>
                 ) : (
-                  <span className="text-red-600">{role.available} spot{role.available !== 1 ? 's' : ''} open</span>
+                  <span className="text-brand-600">{role.available} spot{role.available !== 1 ? 's' : ''} open</span>
                 )}
                 {activeSignups.filter((s: any) => s.role === role.name).length > 0 && (
                   <span className="text-gray-400 ml-2">
@@ -110,6 +110,8 @@ export default async function EventSignupPage({
           roleAvailability={roleAvailability}
         />
       </div>
+
+      <SiteFooter />
     </main>
   )
 }

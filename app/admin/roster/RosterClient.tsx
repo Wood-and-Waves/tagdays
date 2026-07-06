@@ -113,7 +113,7 @@ export default function RosterClient({
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 text-center">
           <p className="text-xs font-semibold text-gray-500 uppercase mb-1">No Shifts</p>
-          <p className="text-3xl font-bold text-red-700">{count0}</p>
+          <p className="text-3xl font-bold text-brand-700">{count0}</p>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 text-center">
           <p className="text-xs font-semibold text-gray-500 uppercase mb-1">1 Shift</p>
@@ -141,7 +141,7 @@ export default function RosterClient({
         {showImport && (
           <div className="px-6 pb-6 border-t border-gray-100 pt-4">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 mb-4 text-sm">
+              <div className="bg-brand-50 border border-brand-200 text-brand-700 rounded-lg p-3 mb-4 text-sm">
                 {error}
               </div>
             )}
@@ -158,13 +158,13 @@ export default function RosterClient({
               onChange={e => setRosterText(e.target.value)}
               placeholder="Jonathan Smith&#10;Angela Johnson&#10;Mike Davis"
               rows={10}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-red-500 mb-4"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-500 mb-4"
             />
             <div className="flex gap-3">
               <button
                 onClick={handleImport}
                 disabled={loading || !rosterText.trim()}
-                className="bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800 transition text-sm font-semibold disabled:opacity-50"
+                className="bg-brand-700 text-white px-4 py-2 rounded-lg hover:bg-brand-800 transition text-sm font-semibold disabled:opacity-50"
               >
                 {loading ? 'Importing...' : 'Import Names'}
               </button>
@@ -186,7 +186,7 @@ export default function RosterClient({
           placeholder="Search by name..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
         />
         {(['all', '0', '1', '2+'] as const).map(f => (
           <button
@@ -194,7 +194,7 @@ export default function RosterClient({
             onClick={() => setFilter(f)}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
               filter === f
-                ? 'bg-red-700 text-white'
+                ? 'bg-brand-700 text-white'
                 : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
           >
@@ -222,7 +222,7 @@ export default function RosterClient({
                 <td className="px-4 py-3">
                   <span className={`inline-block text-xs font-semibold px-2 py-1 rounded-full ${
                     student.shiftCount === 0
-                      ? 'bg-red-100 text-red-700'
+                      ? 'bg-brand-100 text-brand-700'
                       : student.shiftCount === 1
                       ? 'bg-yellow-100 text-yellow-700'
                       : 'bg-green-100 text-green-700'

@@ -70,7 +70,7 @@ export default function LocationsClient({ locations }: { locations: Location[] }
       {!showForm && (
         <button
           onClick={() => setShowForm(true)}
-          className="mb-6 bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800 transition font-semibold text-sm"
+          className="mb-6 bg-brand-700 text-white px-4 py-2 rounded-lg hover:bg-brand-800 transition font-semibold text-sm"
         >
           + Add Location
         </button>
@@ -84,7 +84,7 @@ export default function LocationsClient({ locations }: { locations: Location[] }
           </h2>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 mb-4 text-sm">
+            <div className="bg-brand-50 border border-brand-200 text-brand-700 rounded-lg p-3 mb-4 text-sm">
               {error}
             </div>
           )}
@@ -92,7 +92,7 @@ export default function LocationsClient({ locations }: { locations: Location[] }
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Location Name <span className="text-red-600">*</span>
+                Location Name <span className="text-brand-600">*</span>
               </label>
               <input
                 type="text"
@@ -100,7 +100,7 @@ export default function LocationsClient({ locations }: { locations: Location[] }
                 value={form.name}
                 onChange={e => setForm({ ...form, name: e.target.value })}
                 placeholder="e.g. Jewel - East Door"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
 
@@ -113,7 +113,7 @@ export default function LocationsClient({ locations }: { locations: Location[] }
                 value={form.address}
                 onChange={e => setForm({ ...form, address: e.target.value })}
                 placeholder="e.g. 11500 Haligus Rd, Huntley, IL"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
 
@@ -126,7 +126,7 @@ export default function LocationsClient({ locations }: { locations: Location[] }
                 value={form.notes}
                 onChange={e => setForm({ ...form, notes: e.target.value })}
                 placeholder="e.g. Cover both entrance and drive-thru"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
 
@@ -134,7 +134,7 @@ export default function LocationsClient({ locations }: { locations: Location[] }
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800 transition text-sm font-semibold disabled:opacity-50"
+                className="bg-brand-700 text-white px-4 py-2 rounded-lg hover:bg-brand-800 transition text-sm font-semibold disabled:opacity-50"
               >
                 {loading ? 'Saving...' : editing ? 'Save Changes' : 'Add Location'}
               </button>
@@ -177,7 +177,7 @@ export default function LocationsClient({ locations }: { locations: Location[] }
                     </button>
                     <button
                       onClick={() => handleDelete(location.id)}
-                      className="text-red-600 hover:text-red-800 font-medium"
+                      className="text-brand-600 hover:text-brand-800 font-medium"
                     >
                       Delete
                     </button>

@@ -1,4 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
+import PageHint from '@/app/admin/PageHint'
+import { getEffectiveCapacity } from '@/lib/capacity'
 
 export default async function AdminDashboard({
   searchParams,
@@ -24,7 +26,7 @@ export default async function AdminDashboard({
 
   const { data: slots } = await supabase
     .from('slots')
-    .select('*, location:locations(*), signups(*)')
+    .select('*, location:locations(*), signups(*), role_capacities:slot_role_capacities(*)')
     .eq('event_id', selectedEventId)
     .order('date', { ascending: true })
     .order('start_time', { ascending: true })
@@ -40,11 +42,13 @@ export default async function AdminDashboard({
     const activeSignups = slot.signups.filter((s: any) => !s.cancelled)
     const roleData = (roles || []).map(role => {
       const roleSignups = activeSignups.filter((s: any) => s.role === role.name)
+      const effectiveMax = getEffectiveCapacity(role, slot.role_capacities)
       return {
         role,
         signups: roleSignups,
-        open: Math.max(0, role.max_per_slot - roleSignups.length),
-        full: roleSignups.length >= role.max_per_slot,
+        max: effectiveMax,
+        open: Math.max(0, effectiveMax - roleSignups.length),
+        full: roleSignups.length >= effectiveMax,
       }
     })
     const allFull = roleData.length > 0 && roleData.every(r => r.full)
@@ -62,13 +66,14 @@ export default async function AdminDashboard({
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-1">Dashboard</h1>
+      <PageHint>Overview of shifts, signups, and open spots for the selected event.</PageHint>
 
       {events && events.length > 0 && (
         <div className="mb-6 flex gap-2 flex-wrap">
           {events.map(event => (
             <a key={event.id} href={`/admin?event_id=${event.id}`}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${selectedEventId === event.id ? 'bg-red-700 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${selectedEventId === event.id ? 'bg-brand-700 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>
               {event.name}
             </a>
           ))}
@@ -79,7 +84,7 @@ export default async function AdminDashboard({
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
           <p className="text-yellow-800 font-semibold">No events found.</p>
           <p className="text-yellow-600 text-sm mt-1">Create an event first to see dashboard stats.</p>
-          <a href="/admin/events" className="mt-4 inline-block bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">Go to Events</a>
+          <a href="/admin/events" className="mt-4 inline-block bg-brand-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">Go to Events</a>
         </div>
       ) : (
         <>
@@ -99,7 +104,7 @@ export default async function AdminDashboard({
             </div>
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
               <p className="text-sm text-gray-500">Open Spots</p>
-              <p className="text-3xl font-bold text-red-700">{totalOpenSpots}</p>
+              <p className="text-3xl font-bold text-brand-700">{totalOpenSpots}</p>
             </div>
           </div>
 
@@ -133,9 +138,9 @@ export default async function AdminDashboard({
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-1">
-                          {roleData.map(({ role, signups, full }) => (
+                          {roleData.map(({ role, signups, max, full }) => (
                             <span key={role.id} className={`text-xs px-2 py-0.5 rounded-full font-semibold ${full ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                              {role.name}: {signups.length}/{role.max_per_slot}
+                              {role.name}: {signups.length}/{max}
                             </span>
                           ))}
                         </div>

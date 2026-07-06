@@ -1,16 +1,13 @@
 import Link from 'next/link'
+import SiteHeader from '@/app/components/SiteHeader'
+import SiteFooter from '@/app/components/SiteFooter'
 
 export default function ConfirmPage() {
   return (
-    <main className="min-h-screen bg-gray-50">
-      <header className="bg-red-700 text-white py-6 px-4 shadow-md">
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold">You're Signed Up!</h1>
-          <p className="text-red-200 mt-1">Huntley High School Tag Days 2026</p>
-        </div>
-      </header>
+    <main className="min-h-screen bg-gray-50 flex flex-col">
+      <SiteHeader title="You're Signed Up!" subtitle="Huntley High School Band Boosters" />
 
-      <div className="max-w-2xl mx-auto px-4 py-12 text-center">
+      <div className="max-w-2xl mx-auto px-4 py-12 flex-1 w-full text-center">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           <div className="text-6xl mb-4">🎉</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
@@ -20,7 +17,7 @@ export default function ConfirmPage() {
             You'll receive a confirmation email shortly. We'll also send you
             reminders before your shift.
           </p>
-          <div className="bg-red-50 border border-red-100 rounded-lg p-4 mb-6 text-sm text-red-800">
+          <div className="bg-brand-50 border border-brand-100 rounded-lg p-4 mb-6 text-sm text-brand-800">
             <p className="font-semibold mb-1">Remember:</p>
             <ul className="text-left space-y-1 list-disc list-inside">
               <li>Arrive at the band room 20–30 minutes before your shift</li>
@@ -31,12 +28,14 @@ export default function ConfirmPage() {
           </div>
           <Link
             href="/"
-            className="inline-block bg-red-700 text-white font-semibold px-6 py-3 rounded-lg hover:bg-red-800 transition"
+            className="inline-block bg-brand-700 text-white font-semibold px-6 py-3 rounded-lg hover:bg-brand-800 transition"
           >
             Back to Schedule
           </Link>
         </div>
       </div>
+
+      <SiteFooter />
     </main>
   )
 }

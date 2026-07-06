@@ -31,6 +31,13 @@ export type Location = {
   created_at: string
 }
 
+export type SlotRoleCapacity = {
+  id: string
+  slot_id: string
+  event_role_id: string
+  max_per_slot: number
+}
+
 export type Slot = {
   id: string
   event_id: string
@@ -43,6 +50,7 @@ export type Slot = {
   created_at: string
   location?: Location | null
   event?: Event
+  role_capacities?: SlotRoleCapacity[]
 }
 
 export type Signup = {

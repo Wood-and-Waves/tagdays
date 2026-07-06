@@ -1,21 +1,18 @@
 import Link from 'next/link'
+import SiteHeader from '@/app/components/SiteHeader'
+import SiteFooter from '@/app/components/SiteFooter'
 
 export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-gray-50">
-      <header className="bg-red-700 text-white py-6 px-4 shadow-md">
-        <div className="max-w-3xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold">Terms of Service</h1>
-            <p className="text-red-200 mt-1">Huntley High School Tag Days 2026</p>
-          </div>
-          <Link href="/" className="text-sm underline text-red-200 hover:text-white">
-            Back to Schedule
-          </Link>
-        </div>
-      </header>
+    <main className="min-h-screen bg-gray-50 flex flex-col">
+      <SiteHeader
+        title="Terms of Service"
+        subtitle="Huntley High School Band Boosters"
+        rightLinkHref="/"
+        rightLinkLabel="Back to Schedule"
+      />
 
-      <div className="max-w-3xl mx-auto px-4 py-8">
+      <div className="max-w-3xl mx-auto px-4 py-8 flex-1 w-full">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           <p className="text-gray-500 text-sm mb-6">Last updated: June 2026</p>
 
@@ -39,7 +36,7 @@ export default function TermsPage() {
           <p className="text-gray-600 mb-4">
             If you need to cancel your shift, please contact us as soon as possible
             at{' '}
-            <a href="mailto:fundraising@huntleybands.com" className="text-red-700 underline">
+            <a href="mailto:fundraising@huntleybands.com" className="text-brand-700 underline">
               fundraising@huntleybands.com
             </a>{' '}
             so we can find a replacement volunteer.
@@ -55,12 +52,14 @@ export default function TermsPage() {
           <h2 className="text-lg font-bold text-gray-900 mb-2">Contact</h2>
           <p className="text-gray-600">
             Questions? Contact us at{' '}
-            <a href="mailto:fundraising@huntleybands.com" className="text-red-700 underline">
+            <a href="mailto:fundraising@huntleybands.com" className="text-brand-700 underline">
               fundraising@huntleybands.com
             </a>
           </p>
         </div>
       </div>
+
+      <SiteFooter />
     </main>
   )
 }

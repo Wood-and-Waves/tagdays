@@ -96,7 +96,7 @@ export default function EventSignupForm({
         <p className="text-yellow-600 text-sm mt-1">Please choose a different time slot.</p>
         <button
           onClick={() => router.push(`/events/${eventSlug}`)}
-          className="mt-4 bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800 transition text-sm font-semibold"
+          className="mt-4 bg-brand-700 text-white px-4 py-2 rounded-lg hover:bg-brand-800 transition text-sm font-semibold"
         >
           Back to Schedule
         </button>
@@ -109,7 +109,7 @@ export default function EventSignupForm({
       <h3 className="font-bold text-lg text-gray-900 mb-4">Your Information</h3>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 mb-4 text-sm">
+        <div className="bg-brand-50 border border-brand-200 text-brand-700 rounded-lg p-3 mb-4 text-sm">
           {error}
         </div>
       )}
@@ -118,7 +118,7 @@ export default function EventSignupForm({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              First Name <span className="text-red-600">*</span>
+              First Name <span className="text-brand-600">*</span>
             </label>
             <input
               type="text"
@@ -126,12 +126,12 @@ export default function EventSignupForm({
               required
               value={form.first_name}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Last Name <span className="text-red-600">*</span>
+              Last Name <span className="text-brand-600">*</span>
             </label>
             <input
               type="text"
@@ -139,14 +139,14 @@ export default function EventSignupForm({
               required
               value={form.last_name}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Email <span className="text-red-600">*</span>
+            Email <span className="text-brand-600">*</span>
           </label>
           <input
             type="email"
@@ -154,7 +154,7 @@ export default function EventSignupForm({
             required
             value={form.email}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
 
@@ -168,20 +168,20 @@ export default function EventSignupForm({
             value={form.phone}
             onChange={handleChange}
             placeholder="(555) 555-5555"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            I am signing up as... <span className="text-red-600">*</span>
+            I am signing up as... <span className="text-brand-600">*</span>
           </label>
           <select
             name="role"
             required
             value={form.role}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           >
             <option value="">Select your role</option>
             {availableRoles.map(role => (
@@ -194,13 +194,13 @@ export default function EventSignupForm({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Reminder Preference <span className="text-red-600">*</span>
+            Reminder Preference <span className="text-brand-600">*</span>
           </label>
           <select
             name="reminder_preference"
             value={form.reminder_preference}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           >
             <option value="email">Email only</option>
             <option value="sms">SMS only</option>
@@ -216,18 +216,18 @@ export default function EventSignupForm({
                 name="sms_consent"
                 checked={form.sms_consent}
                 onChange={handleChange}
-                className="mt-1 h-4 w-4 text-red-700 border-gray-300 rounded"
+                className="mt-1 h-4 w-4 text-brand-700 border-gray-300 rounded"
               />
               <span className="text-sm text-gray-600">
                 I agree to receive recurring text messages from Huntley Band Boosters
                 about my volunteer shift. Message frequency: up to 3 messages per signup.
                 Message and data rates may apply. Reply HELP for help, STOP to cancel.
                 View our{' '}
-                <Link href="/privacy" className="text-red-700 underline" target="_blank">
+                <Link href="/privacy" className="text-brand-700 underline" target="_blank">
                   Privacy Policy
                 </Link>{' '}
                 and{' '}
-                <Link href="/terms" className="text-red-700 underline" target="_blank">
+                <Link href="/terms" className="text-brand-700 underline" target="_blank">
                   Terms of Service
                 </Link>.
               </span>
@@ -238,7 +238,7 @@ export default function EventSignupForm({
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-red-700 text-white font-semibold py-3 rounded-lg hover:bg-red-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-brand-700 text-white font-semibold py-3 rounded-lg hover:bg-brand-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Signing up...' : 'Sign Me Up!'}
         </button>

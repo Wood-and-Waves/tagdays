@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import ConfigClient from './ConfigClient'
+import PageHint from '@/app/admin/PageHint'
 
 export default async function ConfigPage() {
   const supabase = await createClient()
@@ -11,7 +12,8 @@ export default async function ConfigPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Settings</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-1">Settings</h1>
+      <PageHint>Configure reminder timing and other site-wide settings.</PageHint>
       <ConfigClient config={config} />
     </div>
   )

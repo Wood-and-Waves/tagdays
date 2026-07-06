@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
+import SiteHeader from '@/app/components/SiteHeader'
+import SiteFooter from '@/app/components/SiteFooter'
 
 export default async function EventFAQPage({
   params,
@@ -19,20 +20,15 @@ export default async function EventFAQPage({
   if (!event) notFound()
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <header className="bg-red-700 text-white py-6 px-4 shadow-md">
-        <div className="max-w-3xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold">FAQ</h1>
-            <p className="text-red-200 mt-1">{event.name}</p>
-          </div>
-          <Link href={`/events/${slug}`} className="text-sm underline text-red-200 hover:text-white">
-            Back to Schedule
-          </Link>
-        </div>
-      </header>
+    <main className="min-h-screen bg-gray-50 flex flex-col">
+      <SiteHeader
+        title="FAQ"
+        subtitle={event.name}
+        backHref={`/events/${slug}`}
+        backLabel="Back to Schedule"
+      />
 
-      <div className="max-w-3xl mx-auto px-4 py-8">
+      <div className="max-w-3xl mx-auto px-4 py-8 flex-1 w-full">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           {event.faq_content ? (
             <div className="text-gray-600 whitespace-pre-wrap">{event.faq_content}</div>
@@ -41,6 +37,8 @@ export default async function EventFAQPage({
           )}
         </div>
       </div>
+
+      <SiteFooter />
     </main>
   )
 }

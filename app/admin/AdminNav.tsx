@@ -19,11 +19,11 @@ export default function AdminNav() {
   return (
     <nav className="bg-gray-900 text-white shadow-md">
       <div className="px-6 py-4 flex justify-between items-center">
-        <span className="font-bold text-red-400">HHS Band Boosters Admin</span>
+        <span className="font-bold text-brand-400">HHS Band Boosters Admin</span>
 
         <div className="hidden md:flex items-center gap-6">
           {links.map(link => (
-            <a key={link.href} href={link.href} className="text-sm hover:text-red-400 transition">
+            <a key={link.href} href={link.href} className="text-sm hover:text-brand-400 transition">
               {link.label}
             </a>
           ))}
@@ -48,7 +48,7 @@ export default function AdminNav() {
       {open && (
         <div className="md:hidden border-t border-gray-700 px-6 py-4 flex flex-col gap-4">
           {links.map(link => (
-            <a key={link.href} href={link.href} className="text-sm hover:text-red-400 transition" onClick={() => setOpen(false)}>
+            <a key={link.href} href={link.href} className="text-sm hover:text-brand-400 transition" onClick={() => setOpen(false)}>
               {link.label}
             </a>
           ))}

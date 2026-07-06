@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import SignupsClient from './SignupsClient'
+import PageHint from '@/app/admin/PageHint'
 
 export default async function SignupsPage({
   searchParams,
@@ -26,13 +27,14 @@ export default async function SignupsPage({
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Signups</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-1">Signups</h1>
+      <PageHint>View, search, and cancel volunteer signups for the selected event.</PageHint>
 
       {events && events.length > 0 && (
         <div className="mb-6 flex gap-2 flex-wrap">
           {events.map(event => (
             <a key={event.id} href={`/admin/signups?event_id=${event.id}`}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${selectedEventId === event.id ? 'bg-red-700 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${selectedEventId === event.id ? 'bg-brand-700 text-white' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>
               {event.name}
             </a>
           ))}

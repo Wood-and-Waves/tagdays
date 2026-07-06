@@ -49,7 +49,7 @@ export default function SignupsClient({ signups, eventId }: { signups: any[]; ev
           placeholder="Search by name, email, or location..."
           value={filter}
           onChange={e => setFilter(e.target.value)}
-          className="w-full max-w-md border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="w-full max-w-md border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
         />
       </div>
       <div className="mb-4">
@@ -87,7 +87,7 @@ export default function SignupsClient({ signups, eventId }: { signups: any[]; ev
                 <td className="px-4 py-3 text-gray-700 capitalize">{signup.reminder_preference}</td>
                 <td className="px-4 py-3">
                   {signup.cancelled ? (
-                    <span className="bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded-full">Cancelled</span>
+                    <span className="bg-brand-100 text-brand-700 text-xs font-semibold px-2 py-1 rounded-full">Cancelled</span>
                   ) : (
                     <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">Active</span>
                   )}
@@ -96,7 +96,7 @@ export default function SignupsClient({ signups, eventId }: { signups: any[]; ev
                   {signup.cancelled ? (
                     <button onClick={() => handleRestore(signup.id)} disabled={loading === signup.id} className="text-blue-600 hover:text-blue-800 font-medium">Restore</button>
                   ) : (
-                    <button onClick={() => handleCancel(signup.id)} disabled={loading === signup.id} className="text-red-600 hover:text-red-800 font-medium">Cancel</button>
+                    <button onClick={() => handleCancel(signup.id)} disabled={loading === signup.id} className="text-brand-600 hover:text-brand-800 font-medium">Cancel</button>
                   )}
                 </td>
               </tr>

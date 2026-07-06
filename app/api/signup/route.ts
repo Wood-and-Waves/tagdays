@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { sendConfirmationEmail } from '@/lib/email/sendConfirmation'
 import { sendConfirmationSMS } from '@/lib/email/sendSMS'
+import { getEffectiveCapacity } from '@/lib/capacity'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
@@ -30,6 +31,12 @@ export async function POST(request: Request) {
     .select('*')
     .eq('event_id', slot.event_id)
 
+  // Get any slot-specific capacity overrides
+  const { data: roleCapacities } = await supabase
+    .from('slot_role_capacities')
+    .select('*')
+    .eq('slot_id', slot_id)
+
   // Get current signups for capacity check
   const { data: existingSignups } = await supabase
     .from('signups')
@@ -42,8 +49,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid role for this event.' }, { status: 400 })
   }
 
+  const effectiveMax = getEffectiveCapacity(roleConfig, roleCapacities)
+
   const roleSignups = (existingSignups || []).filter(s => s.role === role)
-  if (roleSignups.length >= roleConfig.max_per_slot) {
+  if (roleSignups.length >= effectiveMax) {
     return NextResponse.json({ error: `${role} spots for this shift are full.` }, { status: 400 })
   }
 

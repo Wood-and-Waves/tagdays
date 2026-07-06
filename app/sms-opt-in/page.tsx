@@ -1,16 +1,18 @@
 import Link from 'next/link'
+import SiteHeader from '@/app/components/SiteHeader'
+import SiteFooter from '@/app/components/SiteFooter'
 
 export default function SMSOptInPage() {
   return (
-    <main className="min-h-screen bg-gray-50">
-      <header className="bg-red-700 text-white py-6 px-4 shadow-md">
-        <div className="max-w-3xl mx-auto">
-          <h1 className="text-2xl font-bold">SMS Opt-In Process</h1>
-          <p className="text-red-200 mt-1">Huntley High School Band Boosters — Tag Days</p>
-        </div>
-      </header>
+    <main className="min-h-screen bg-gray-50 flex flex-col">
+      <SiteHeader
+        title="SMS Opt-In Process"
+        subtitle="Huntley High School Band Boosters"
+        rightLinkHref="/"
+        rightLinkLabel="Back to Schedule"
+      />
 
-      <div className="max-w-3xl mx-auto px-4 py-8 space-y-8">
+      <div className="max-w-3xl mx-auto px-4 py-8 space-y-8 flex-1 w-full">
 
         {/* Overview */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -35,7 +37,7 @@ export default function SMSOptInPage() {
           <div className="space-y-6">
 
             <div className="flex gap-4">
-              <div className="shrink-0 w-8 h-8 bg-red-700 text-white rounded-full flex items-center justify-center font-bold text-sm">1</div>
+              <div className="shrink-0 w-8 h-8 bg-brand-700 text-white rounded-full flex items-center justify-center font-bold text-sm">1</div>
               <div>
                 <p className="font-semibold text-gray-900">Volunteer visits hhstagdays.com</p>
                 <p className="text-gray-600 text-sm mt-1">The public schedule page shows all available volunteer shifts organized by time or location.</p>
@@ -43,7 +45,7 @@ export default function SMSOptInPage() {
             </div>
 
             <div className="flex gap-4">
-              <div className="shrink-0 w-8 h-8 bg-red-700 text-white rounded-full flex items-center justify-center font-bold text-sm">2</div>
+              <div className="shrink-0 w-8 h-8 bg-brand-700 text-white rounded-full flex items-center justify-center font-bold text-sm">2</div>
               <div>
                 <p className="font-semibold text-gray-900">Volunteer selects a shift</p>
                 <p className="text-gray-600 text-sm mt-1">Tapping an available shift opens the signup form for that specific time and location.</p>
@@ -51,7 +53,7 @@ export default function SMSOptInPage() {
             </div>
 
             <div className="flex gap-4">
-              <div className="shrink-0 w-8 h-8 bg-red-700 text-white rounded-full flex items-center justify-center font-bold text-sm">3</div>
+              <div className="shrink-0 w-8 h-8 bg-brand-700 text-white rounded-full flex items-center justify-center font-bold text-sm">3</div>
               <div>
                 <p className="font-semibold text-gray-900">Volunteer completes the signup form</p>
                 <p className="text-gray-600 text-sm mt-1">The form collects: First name, Last name, Email address, Phone number (optional), Role (Student or Parent), and Reminder preference.</p>
@@ -59,7 +61,7 @@ export default function SMSOptInPage() {
             </div>
 
             <div className="flex gap-4">
-              <div className="shrink-0 w-8 h-8 bg-red-700 text-white rounded-full flex items-center justify-center font-bold text-sm">4</div>
+              <div className="shrink-0 w-8 h-8 bg-brand-700 text-white rounded-full flex items-center justify-center font-bold text-sm">4</div>
               <div>
                 <p className="font-semibold text-gray-900">Volunteer selects SMS reminder preference</p>
                 <p className="text-gray-600 text-sm mt-1">
@@ -70,7 +72,7 @@ export default function SMSOptInPage() {
             </div>
 
             <div className="flex gap-4">
-              <div className="shrink-0 w-8 h-8 bg-red-700 text-white rounded-full flex items-center justify-center font-bold text-sm">5</div>
+              <div className="shrink-0 w-8 h-8 bg-brand-700 text-white rounded-full flex items-center justify-center font-bold text-sm">5</div>
               <div>
                 <p className="font-semibold text-gray-900">Volunteer actively checks the SMS consent checkbox</p>
                 <p className="text-gray-600 text-sm mt-1">
@@ -82,16 +84,16 @@ export default function SMSOptInPage() {
                   <p className="text-xs font-semibold text-gray-500 uppercase mb-3">Consent checkbox as shown on signup form:</p>
                   <div className="flex items-start gap-3 bg-white border border-gray-200 rounded-lg p-4">
                     <div className="mt-0.5 w-4 h-4 border-2 border-gray-400 rounded shrink-0 flex items-center justify-center">
-                      <div className="w-2 h-2 bg-red-700 rounded-sm opacity-0"></div>
+                      <div className="w-2 h-2 bg-brand-700 rounded-sm opacity-0"></div>
                     </div>
                     <p className="text-sm text-gray-600">
                       I agree to receive recurring text messages from Huntley Band Boosters
                       about my volunteer shift. Message frequency: up to 3 messages per signup.
                       Message and data rates may apply. Reply HELP for help, STOP to cancel.
                       View our{' '}
-                      <span className="text-red-700 underline">Privacy Policy</span>
+                      <span className="text-brand-700 underline">Privacy Policy</span>
                       {' '}and{' '}
-                      <span className="text-red-700 underline">Terms of Service</span>.
+                      <span className="text-brand-700 underline">Terms of Service</span>.
                     </p>
                   </div>
                   <p className="text-xs text-gray-400 mt-2">* Checkbox is unchecked by default. Volunteer must actively check it to proceed.</p>
@@ -100,7 +102,7 @@ export default function SMSOptInPage() {
             </div>
 
             <div className="flex gap-4">
-              <div className="shrink-0 w-8 h-8 bg-red-700 text-white rounded-full flex items-center justify-center font-bold text-sm">6</div>
+              <div className="shrink-0 w-8 h-8 bg-brand-700 text-white rounded-full flex items-center justify-center font-bold text-sm">6</div>
               <div>
                 <p className="font-semibold text-gray-900">Volunteer submits the form</p>
                 <p className="text-gray-600 text-sm mt-1">
@@ -154,12 +156,14 @@ export default function SMSOptInPage() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-bold text-gray-900 mb-4">Policy Documents</h2>
           <div className="flex gap-4">
-            <Link href="/privacy" className="text-red-700 underline text-sm">Privacy Policy</Link>
-            <Link href="/terms" className="text-red-700 underline text-sm">Terms of Service</Link>
+            <Link href="/privacy" className="text-brand-700 underline text-sm">Privacy Policy</Link>
+            <Link href="/terms" className="text-brand-700 underline text-sm">Terms of Service</Link>
           </div>
         </div>
 
       </div>
+
+      <SiteFooter />
     </main>
   )
 }

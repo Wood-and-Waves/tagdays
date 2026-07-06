@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import SiteHeader from '@/app/components/SiteHeader'
+import SiteFooter from '@/app/components/SiteFooter'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -20,12 +22,7 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-red-700 text-white py-8 px-4 shadow-md">
-        <div className="max-w-5xl mx-auto">
-          <h1 className="text-3xl font-bold">HHS Band Boosters</h1>
-          <p className="text-red-200 mt-1">Volunteer Signup</p>
-        </div>
-      </header>
+      <SiteHeader title="HHS Band Boosters" subtitle="Volunteer Signup" />
 
       <div className="max-w-5xl mx-auto px-4 py-8 flex-1 w-full">
         {!events || events.length === 0 ? (
@@ -36,17 +33,17 @@ export default async function Home() {
           <div className="grid gap-6 sm:grid-cols-2">
             {events.map(event => (
               <Link key={event.id} href={`/events/${event.slug}`}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:border-red-300 hover:shadow-md transition block">
+                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:border-brand-300 hover:shadow-md transition block">
                 <h2 className="text-xl font-bold text-gray-900">{event.name}</h2>
                 {(event.start_date || event.end_date) && (
-                  <p className="text-red-700 font-semibold text-sm mt-1">
+                  <p className="text-brand-700 font-semibold text-sm mt-1">
                     {formatDateRange(event.start_date, event.end_date)}
                   </p>
                 )}
                 {event.description && (
                   <p className="text-gray-600 text-sm mt-2">{event.description}</p>
                 )}
-                <div className="mt-4 text-red-700 text-sm font-semibold">
+                <div className="mt-4 text-brand-700 text-sm font-semibold">
                   View Schedule →
                 </div>
               </Link>
@@ -55,19 +52,7 @@ export default async function Home() {
         )}
       </div>
 
-      <footer className="bg-gray-900 text-gray-400 py-6 px-4 mt-8">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 text-sm">
-          <div>
-            <p className="font-semibold text-white">HHS Band Boosters</p>
-            <p>Huntley High School - Huntley, IL</p>
-          </div>
-          <div className="flex gap-6">
-            <Link href="/privacy" className="hover:text-white transition">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-white transition">Terms</Link>
-            <a href="mailto:fundraising@huntleybands.com" className="hover:text-white transition">Contact</a>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   )
 }

@@ -59,7 +59,7 @@ function ConfirmForm() {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 mb-4 text-sm">
+          <div className="bg-brand-50 border border-brand-200 text-brand-700 rounded-lg p-3 mb-4 text-sm">
             {error}
           </div>
         )}
@@ -78,7 +78,7 @@ function ConfirmForm() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="At least 8 characters"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
 
@@ -92,14 +92,14 @@ function ConfirmForm() {
                 value={confirm}
                 onChange={e => setConfirm(e.target.value)}
                 placeholder="Repeat your password"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-red-700 text-white font-semibold py-3 rounded-lg hover:bg-red-800 transition disabled:opacity-50"
+              className="w-full bg-brand-700 text-white font-semibold py-3 rounded-lg hover:bg-brand-800 transition disabled:opacity-50"
             >
               {loading ? 'Setting password...' : 'Set Password & Sign In'}
             </button>

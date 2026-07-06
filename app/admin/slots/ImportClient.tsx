@@ -126,7 +126,7 @@ export default function ImportClient({ existingLocationNames, eventId }: { exist
         <div className="px-6 pb-6 border-t border-gray-100 pt-4">
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 mb-4 text-sm">
+            <div className="bg-brand-50 border border-brand-200 text-brand-700 rounded-lg p-3 mb-4 text-sm">
               {error}
             </div>
           )}
@@ -153,7 +153,7 @@ export default function ImportClient({ existingLocationNames, eventId }: { exist
                       <div className="flex items-center gap-2 mb-1">
                         <p className="font-semibold text-gray-900">{name}</p>
                         {info.isNew ? (
-                          <span className="bg-red-100 text-red-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+                          <span className="bg-brand-100 text-brand-700 text-xs font-semibold px-2 py-0.5 rounded-full">
                             New Location
                           </span>
                         ) : (
@@ -181,7 +181,7 @@ export default function ImportClient({ existingLocationNames, eventId }: { exist
                 <button
                   onClick={handleImport}
                   disabled={loading || totalNew === 0}
-                  className="bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800 transition text-sm font-semibold disabled:opacity-50"
+                  className="bg-brand-700 text-white px-4 py-2 rounded-lg hover:bg-brand-800 transition text-sm font-semibold disabled:opacity-50"
                 >
                   {loading ? 'Importing...' : `Confirm — Create ${totalNew} Slots`}
                 </button>
@@ -213,12 +213,12 @@ export default function ImportClient({ existingLocationNames, eventId }: { exist
                 onChange={e => { setCsvText(e.target.value); setResult(null) }}
                 placeholder="Paste CSV or spreadsheet data here..."
                 rows={8}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-red-500 mb-4"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-500 mb-4"
               />
               <button
                 onClick={generatePreview}
                 disabled={!csvText.trim() || loading}
-                className="bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800 transition text-sm font-semibold disabled:opacity-50"
+                className="bg-brand-700 text-white px-4 py-2 rounded-lg hover:bg-brand-800 transition text-sm font-semibold disabled:opacity-50"
               >
                 {loading ? 'Checking...' : 'Preview Import'}
               </button>

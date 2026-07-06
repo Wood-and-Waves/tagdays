@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { SlotWithSignups, EventRole } from '@/lib/types'
+import { getEffectiveCapacity } from '@/lib/capacity'
 
 const formatTime = (t: string) => {
   const [h, m] = t.slice(0, 5).split(':').map(Number)
@@ -38,23 +39,26 @@ export default function EventClient({
     const activeSignups = slot.signups.filter((s: any) => !s.cancelled)
     const roleData = roles.map(role => {
       const roleSignups = activeSignups.filter((s: any) => s.role === role.name)
+      const effectiveMax = getEffectiveCapacity(role, slot.role_capacities)
       return {
         role,
         signups: roleSignups,
-        open: role.max_per_slot - roleSignups.length,
-        full: roleSignups.length >= role.max_per_slot,
+        open: effectiveMax - roleSignups.length,
+        full: roleSignups.length >= effectiveMax,
       }
     })
     const allFull = roleData.every(r => r.full)
     return { roleData, allFull }
   }
 
+  const visibleSlots = filteredSlots.filter(slot => !getSlotData(slot).allFull)
+
   const handleSlotClick = (slot: SlotWithSignups) => {
     const { allFull } = getSlotData(slot)
     if (!allFull) router.push(`/events/${eventSlug}/signup/${slot.id}`)
   }
 
-  const byTime = [...filteredSlots].sort((a, b) => {
+  const byTime = [...visibleSlots].sort((a, b) => {
     if (a.date !== b.date) return a.date.localeCompare(b.date)
     return a.start_time.localeCompare(b.start_time)
   })
@@ -67,7 +71,7 @@ export default function EventClient({
     return acc
   }, {} as Record<string, { label: string, slots: SlotWithSignups[] }>)
 
-  const byLocation = filteredSlots.reduce((acc, slot) => {
+  const byLocation = visibleSlots.reduce((acc, slot) => {
     const name = slot.location?.name || 'General'
     if (!acc[name]) acc[name] = { location: slot.location, slots: [] }
     acc[name].slots.push(slot)
@@ -85,7 +89,7 @@ export default function EventClient({
       <div
         onClick={() => handleSlotClick(slot)}
         className={`border-b border-gray-100 last:border-0 px-4 py-3 flex items-center justify-between gap-4 ${
-          allFull ? 'opacity-50 cursor-default' : 'cursor-pointer hover:bg-red-50 active:bg-red-100 transition'
+          allFull ? 'opacity-50 cursor-default' : 'cursor-pointer hover:bg-brand-50 active:bg-brand-100 transition'
         }`}
       >
         <div className="min-w-0 flex-1">
@@ -104,7 +108,7 @@ export default function EventClient({
               <div key={role.id} className="flex items-baseline gap-1">
                 <span className="text-gray-400 shrink-0">{role.name}:</span>
                 {!full && (
-                  <span className="text-red-600 font-semibold">{open} needed</span>
+                  <span className="text-brand-600 font-semibold">{open} needed</span>
                 )}
                 {signups.length > 0 && (
                   <span className="text-gray-400 ml-1">
@@ -119,7 +123,7 @@ export default function EventClient({
           {allFull ? (
             <span className="bg-gray-200 text-gray-600 text-xs font-semibold px-3 py-1 rounded-full">Full</span>
           ) : (
-            <span className="text-red-700 text-lg">›</span>
+            <span className="text-brand-700 text-lg">›</span>
           )}
         </div>
       </div>
@@ -141,7 +145,7 @@ export default function EventClient({
           onClick={() => setSortBy('time')}
           className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
             sortBy === 'time'
-              ? 'bg-red-700 text-white'
+              ? 'bg-brand-700 text-white'
               : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
           }`}
         >
@@ -151,7 +155,7 @@ export default function EventClient({
           onClick={() => setSortBy('location')}
           className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
             sortBy === 'location'
-              ? 'bg-red-700 text-white'
+              ? 'bg-brand-700 text-white'
               : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
           }`}
         >
@@ -183,11 +187,11 @@ export default function EventClient({
         ))}
       </div>
 
-      {filteredSlots.length === 0 && (
+      {visibleSlots.length === 0 && (
         <p className="text-center text-gray-400 py-12">No open slots for this day.</p>
       )}
 
-      {sortBy === 'time' && filteredSlots.length > 0 && (
+      {sortBy === 'time' && visibleSlots.length > 0 && (
         <div className="space-y-4">
           {Object.entries(byTimeGrouped).map(([key, { label, slots }]) => (
             <div key={key} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -202,7 +206,7 @@ export default function EventClient({
         </div>
       )}
 
-      {sortBy === 'location' && filteredSlots.length > 0 && (
+      {sortBy === 'location' && visibleSlots.length > 0 && (
         <div className="space-y-4">
           {Object.entries(byLocation).map(([name, { location, slots }]) => (
             <div key={name} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
