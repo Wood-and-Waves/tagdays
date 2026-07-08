@@ -2,6 +2,9 @@ import { Config } from '@netlify/functions'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import twilio from 'twilio'
+import { fromZonedTime, toZonedTime, format } from 'date-fns-tz'
+
+const EVENT_TIMEZONE = 'America/Chicago'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -29,7 +32,7 @@ export default async function handler() {
   }
 
   const now = new Date()
-  const todayDate = new Date().toISOString().split('T')[0]
+  const todayDate = format(toZonedTime(now, EVENT_TIMEZONE), 'yyyy-MM-dd')
 
   const { data: signups, error } = await supabase
     .from('signups')
@@ -51,12 +54,12 @@ export default async function handler() {
     const event = slot.event
     if (!event || !event.is_active) continue
 
-    const shiftTime = new Date(`${slot.date}T${slot.start_time}`)
+    const shiftTime = fromZonedTime(`${slot.date}T${slot.start_time}`, EVENT_TIMEZONE)
     const hoursUntilShift = (shiftTime.getTime() - now.getTime()) / (1000 * 60 * 60)
     const isToday = slot.date === todayDate
 
     const formattedDate = shiftTime.toLocaleDateString('en-US', {
-      weekday: 'long', month: 'long', day: 'numeric'
+      weekday: 'long', month: 'long', day: 'numeric', timeZone: EVENT_TIMEZONE
     })
 
     if (
