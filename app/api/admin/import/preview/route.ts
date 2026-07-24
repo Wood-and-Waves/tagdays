@@ -18,31 +18,36 @@ export async function POST(request: Request) {
     existingSlots: string[]
   }> = {}
 
+  // Cache existing-location lookups by name so each unique location is only
+  // queried once, instead of twice per row.
+  const locByName: Record<string, { id: string } | null> = {}
+  const lookupLocation = async (name: string) => {
+    if (!(name in locByName)) {
+      const { data } = await adminClient
+        .from('locations')
+        .select('id')
+        .eq('name', name)
+        .single()
+      locByName[name] = data ?? null
+    }
+    return locByName[name]
+  }
+
   for (const row of rows) {
     const { location_name, address, notes, date, start_time, end_time } = row
     if (!location_name || !date || !start_time || !end_time) continue
 
-    if (!locationSummary[location_name]) {
-      const { data: existingLoc } = await adminClient
-        .from('locations')
-        .select('id')
-        .eq('name', location_name.trim())
-        .single()
+    const loc = await lookupLocation(location_name.trim())
 
+    if (!locationSummary[location_name]) {
       locationSummary[location_name] = {
         address: address || '',
         notes: notes || '',
-        isNew: !existingLoc,
+        isNew: !loc,
         newSlots: [],
         existingSlots: [],
       }
     }
-
-    const { data: loc } = await adminClient
-      .from('locations')
-      .select('id')
-      .eq('name', location_name.trim())
-      .single()
 
     let current = start_time.trim()
     const endTime = end_time.trim()

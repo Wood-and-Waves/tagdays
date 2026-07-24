@@ -12,7 +12,6 @@ export default function ConfigClient({ config }: { config: AdminConfig }) {
   const [form, setForm] = useState({
     reminder_1_hours_before: config.reminder_1_hours_before,
     reminder_2_hours_before: config.reminder_2_hours_before,
-    event_year: config.event_year,
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,22 +62,6 @@ export default function ConfigClient({ config }: { config: AdminConfig }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Event Year
-            </label>
-            <input
-              type="number"
-              min={2024}
-              max={2099}
-              required
-              value={form.event_year}
-              onChange={e => setForm({ ...form, event_year: parseInt(e.target.value) })}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-            />
-            <p className="text-xs text-gray-400 mt-1">Appears throughout the site and in all emails.</p>
-          </div>
-
-          <div className="border-t border-gray-200 pt-4">
             <h3 className="font-semibold text-gray-800 mb-3">Reminder Timing</h3>
 
             <div className="space-y-4">

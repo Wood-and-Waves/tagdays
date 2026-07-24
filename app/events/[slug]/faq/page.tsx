@@ -15,6 +15,7 @@ export default async function EventFAQPage({
     .from('events')
     .select('*')
     .eq('slug', slug)
+    .eq('is_active', true)
     .single()
 
   if (!event) notFound()

@@ -18,6 +18,7 @@ export default async function EventSignupPage({
     .from('events')
     .select('*')
     .eq('slug', slug)
+    .eq('is_active', true)
     .single()
 
   if (!event) notFound()

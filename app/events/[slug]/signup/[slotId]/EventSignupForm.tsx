@@ -86,7 +86,7 @@ export default function EventSignupForm({
       return
     }
 
-    router.push('/confirm')
+    router.push(`/confirm?event=${eventSlug}`)
   }
 
   if (allFull) {
