@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
 import SiteHeader from '@/app/components/SiteHeader'
 import SiteFooter from '@/app/components/SiteFooter'
@@ -27,9 +28,13 @@ export default async function EventPage({
     .eq('event_id', event.id)
     .order('sort_order', { ascending: true })
 
-  const { data: slots } = await supabase
+  // Signups are read with the service-role client (server-only) and limited
+  // to non-PII columns — the anon role can no longer read this table, and we
+  // never want email/phone reaching the browser via the page payload.
+  const adminClient = createAdminClient()
+  const { data: slots } = await adminClient
     .from('slots')
-    .select('*, location:locations(*), signups(*), role_capacities:slot_role_capacities(*)')
+    .select('*, location:locations(*), signups(id, role, first_name, last_name, cancelled), role_capacities:slot_role_capacities(*)')
     .eq('event_id', event.id)
     .order('date', { ascending: true })
     .order('start_time', { ascending: true })

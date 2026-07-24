@@ -68,6 +68,8 @@ export type Signup = {
   reminder_2_sent: boolean
   confirmation_sent: boolean
   cancelled: boolean
+  sms_consent: boolean
+  sms_consent_at: string | null
   created_at: string
 }
 

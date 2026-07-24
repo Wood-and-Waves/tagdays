@@ -24,7 +24,7 @@ export async function GET(request: Request) {
   const filenameSafe = eventName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'tagdays'
 
   const rows = [
-    ['Event', 'First Name', 'Last Name', 'Role', 'Email', 'Phone', 'Location', 'Date', 'Start Time', 'End Time', 'Reminder', 'Status', 'Signed Up At'].join(','),
+    ['Event', 'First Name', 'Last Name', 'Role', 'Email', 'Phone', 'Location', 'Date', 'Start Time', 'End Time', 'Reminder', 'SMS Consent', 'Status', 'Signed Up At'].join(','),
     ...filteredSignups.map(s => [
       s.slot?.event?.name || '',
       s.first_name,
@@ -37,6 +37,7 @@ export async function GET(request: Request) {
       s.slot?.start_time?.slice(0, 5) || '',
       s.slot?.end_time?.slice(0, 5) || '',
       s.reminder_preference,
+      s.sms_consent ? `Yes${s.sms_consent_at ? ' (' + new Date(s.sms_consent_at).toLocaleDateString('en-US') + ')' : ''}` : 'No',
       s.cancelled ? 'Cancelled' : 'Active',
       new Date(s.created_at).toLocaleDateString('en-US'),
     ].map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))

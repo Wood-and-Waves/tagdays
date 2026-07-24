@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { sendConfirmationEmail } from '@/lib/email/sendConfirmation'
 import { sendConfirmationSMS } from '@/lib/email/sendSMS'
 import { getEffectiveCapacity } from '@/lib/capacity'
@@ -6,9 +7,12 @@ import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
+  // Anon can no longer read/update signups (PII lockdown); use the service-role
+  // client for the capacity check and the confirmation_sent flag.
+  const admin = createAdminClient()
   const body = await request.json()
 
-  const { slot_id, first_name, last_name, email, phone, role, reminder_preference } = body
+  const { slot_id, first_name, last_name, email, phone, role, reminder_preference, sms_consent } = body
 
   if (!slot_id || !first_name || !last_name || !email || !role) {
     return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
@@ -37,10 +41,10 @@ export async function POST(request: Request) {
     .select('*')
     .eq('slot_id', slot_id)
 
-  // Get current signups for capacity check
-  const { data: existingSignups } = await supabase
+  // Get current signups for capacity check (service-role: anon can't read signups)
+  const { data: existingSignups } = await admin
     .from('signups')
-    .select('*')
+    .select('id, role')
     .eq('slot_id', slot_id)
     .eq('cancelled', false)
 
@@ -56,8 +60,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: `${role} spots for this shift are full.` }, { status: 400 })
   }
 
-  // Insert signup
-  const { data: signup, error: insertError } = await supabase
+  // Insert signup (service-role: anon has insert but no read, so a RETURNING
+  // select would come back empty and break .single())
+  const { data: signup, error: insertError } = await admin
     .from('signups')
     .insert({
       slot_id,
@@ -68,12 +73,19 @@ export async function POST(request: Request) {
       phone: phone || null,
       role,
       reminder_preference: reminder_preference || 'email',
+      sms_consent: sms_consent === true,
+      sms_consent_at: sms_consent === true ? new Date().toISOString() : null,
     })
     .select()
     .single()
 
   if (insertError) {
     console.error('Insert error:', insertError)
+    // The DB capacity trigger rejects an overfill (e.g. two people racing for
+    // the last spot past the pre-check above) with a ROLE_FULL exception.
+    if (insertError.message?.includes('ROLE_FULL')) {
+      return NextResponse.json({ error: `${role} spots for this shift are full.` }, { status: 400 })
+    }
     return NextResponse.json({ error: 'Failed to save signup. Please try again.' }, { status: 500 })
   }
 
@@ -98,7 +110,7 @@ export async function POST(request: Request) {
         eventName,
       })
       console.log('Email sent successfully')
-      await supabase.from('signups').update({ confirmation_sent: true }).eq('id', signup.id)
+      await admin.from('signups').update({ confirmation_sent: true }).eq('id', signup.id)
     } catch (emailError) {
       console.error('Email failed:', emailError)
     }

@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
 import SiteHeader from '@/app/components/SiteHeader'
 import { getEffectiveCapacity } from '@/lib/capacity'
@@ -21,9 +22,12 @@ export default async function EventSignupPage({
 
   if (!event) notFound()
 
-  const { data: slot } = await supabase
+  // Signups read via service-role client (server-only), non-PII columns only —
+  // anon can't read this table and email/phone must not reach the browser.
+  const adminClient = createAdminClient()
+  const { data: slot } = await adminClient
     .from('slots')
-    .select('*, location:locations(*), signups(*), role_capacities:slot_role_capacities(*)')
+    .select('*, location:locations(*), signups(id, role, first_name, last_name, cancelled), role_capacities:slot_role_capacities(*)')
     .eq('id', slotId)
     .single()
 
