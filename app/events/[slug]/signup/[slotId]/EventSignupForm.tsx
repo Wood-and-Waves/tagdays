@@ -9,6 +9,7 @@ export default function EventSignupForm({
   eventSlug,
   eventName,
   roleAvailability,
+  formToken,
 }: {
   slotId: string
   eventSlug: string
@@ -21,6 +22,7 @@ export default function EventSignupForm({
     available: number
     full: boolean
   }[]
+  formToken: string
 }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -34,6 +36,7 @@ export default function EventSignupForm({
     role: '',
     reminder_preference: 'email',
     sms_consent: false,
+    company_website: '',
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -75,7 +78,7 @@ export default function EventSignupForm({
     const res = await fetch('/api/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...form, slot_id: slotId }),
+      body: JSON.stringify({ ...form, slot_id: slotId, form_token: formToken }),
     })
 
     const data = await res.json()
@@ -115,6 +118,21 @@ export default function EventSignupForm({
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Honeypot: hidden from humans; bots that fill every field get flagged. */}
+        <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', overflow: 'hidden' }}>
+          <label>
+            Company Website
+            <input
+              type="text"
+              name="company_website"
+              tabIndex={-1}
+              autoComplete="off"
+              value={form.company_website}
+              onChange={handleChange}
+            />
+          </label>
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

@@ -5,6 +5,11 @@ import SiteHeader from '@/app/components/SiteHeader'
 import { getEffectiveCapacity } from '@/lib/capacity'
 import SiteFooter from '@/app/components/SiteFooter'
 import EventSignupForm from './EventSignupForm'
+import { issueFormToken } from '@/lib/formToken'
+
+export const metadata = {
+  robots: { index: false, follow: false },
+}
 
 export default async function EventSignupPage({
   params,
@@ -60,6 +65,8 @@ export default async function EventSignupPage({
     return `${hour}:${String(m).padStart(2, '0')} ${ampm}`
   }
 
+  const formToken = issueFormToken()
+
   return (
     <main className="min-h-screen bg-gray-50 flex flex-col">
       <SiteHeader
@@ -113,6 +120,7 @@ export default async function EventSignupPage({
           eventSlug={slug}
           eventName={event.name}
           roleAvailability={roleAvailability}
+          formToken={formToken}
         />
       </div>
 
