@@ -5,6 +5,10 @@ import SiteHeader from '@/app/components/SiteHeader'
 import SiteFooter from '@/app/components/SiteFooter'
 import EventClient from './EventClient'
 
+export const metadata = {
+  robots: { index: false, follow: false },
+}
+
 export default async function EventPage({
   params,
 }: {
