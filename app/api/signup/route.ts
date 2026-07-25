@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { sendConfirmationEmail } from '@/lib/email/sendConfirmation'
 import { sendConfirmationSMS } from '@/lib/email/sendSMS'
 import { getEffectiveCapacity } from '@/lib/capacity'
+import { evaluateSignupGuards } from '@/lib/signupGuards'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
@@ -12,7 +13,7 @@ export async function POST(request: Request) {
   const admin = createAdminClient()
   const body = await request.json()
 
-  const { slot_id, first_name, last_name, email, phone, role, reminder_preference, sms_consent } = body
+  const { slot_id, first_name, last_name, email, phone, role, reminder_preference, sms_consent, company_website, form_token } = body
 
   if (!slot_id || !first_name || !last_name || !email || !role) {
     return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
@@ -44,9 +45,30 @@ export async function POST(request: Request) {
   // Get current signups for capacity check (service-role: anon can't read signups)
   const { data: existingSignups } = await admin
     .from('signups')
-    .select('id, role')
+    .select('id, role, email')
     .eq('slot_id', slot_id)
     .eq('cancelled', false)
+
+  // Invisible bot protection: honeypot, signed timing token, duplicate email.
+  const verdict = evaluateSignupGuards({
+    honeypot: company_website,
+    formToken: form_token,
+    email,
+    existingEmails: (existingSignups || []).map(s => s.email).filter(Boolean) as string[],
+  })
+
+  if (verdict.action === 'bot') {
+    // Fake success: bot believes it won, but we insert nothing and send nothing.
+    console.warn('Signup rejected by bot guard for slot', slot_id)
+    return NextResponse.json({ success: true })
+  }
+
+  if (verdict.action === 'duplicate') {
+    return NextResponse.json(
+      { error: "You're already signed up for this shift!" },
+      { status: 400 }
+    )
+  }
 
   const roleConfig = roles?.find(r => r.name === role)
   if (!roleConfig) {
