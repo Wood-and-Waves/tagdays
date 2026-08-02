@@ -77,10 +77,18 @@ export default function RosterClient({
     router.refresh()
   }
 
-  // Match each student to their signups
+  // Match each student to their signups. Contact details live on the signups,
+  // not the roster, so a student only has them once they've signed up for
+  // something — and the same address usually repeats across their shifts.
   const studentsWithCounts = roster.map(student => {
     const matched = matchSignups(student, signups)
-    return { ...student, shiftCount: matched.length, shifts: matched }
+    return {
+      ...student,
+      shiftCount: matched.length,
+      shifts: matched,
+      emails: [...new Set(matched.map((s: any) => s.email).filter(Boolean))] as string[],
+      phones: [...new Set(matched.map((s: any) => s.phone).filter(Boolean))] as string[],
+    }
   })
 
   // Find unmatched signups
@@ -205,11 +213,14 @@ export default function RosterClient({
 
       {/* Roster table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               <th className="text-left px-4 py-3 font-semibold text-gray-600">Student</th>
               <th className="text-left px-4 py-3 font-semibold text-gray-600">Shifts Signed Up</th>
+              <th className="text-left px-4 py-3 font-semibold text-gray-600">Email</th>
+              <th className="text-left px-4 py-3 font-semibold text-gray-600">Phone</th>
               <th className="text-left px-4 py-3 font-semibold text-gray-600">Details</th>
             </tr>
           </thead>
@@ -230,6 +241,20 @@ export default function RosterClient({
                     {student.shiftCount} shift{student.shiftCount !== 1 ? 's' : ''}
                   </span>
                 </td>
+                <td className="px-4 py-3 text-gray-600 text-xs">
+                  {student.emails.length > 0
+                    ? student.emails.map((email, i) => (
+                        <span key={i} className="block whitespace-nowrap">{email}</span>
+                      ))
+                    : <span className="text-gray-300">—</span>}
+                </td>
+                <td className="px-4 py-3 text-gray-600 text-xs">
+                  {student.phones.length > 0
+                    ? student.phones.map((phone, i) => (
+                        <span key={i} className="block whitespace-nowrap">{phone}</span>
+                      ))
+                    : <span className="text-gray-300">—</span>}
+                </td>
                 <td className="px-4 py-3 text-gray-500 text-xs">
                   {student.shifts.map((sg: any, i: number) => (
                     <span key={i} className="block">
@@ -241,13 +266,14 @@ export default function RosterClient({
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={3} className="px-4 py-8 text-center text-gray-400">
+                <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
                   No students found.
                 </td>
               </tr>
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Unmatched signups */}
@@ -261,10 +287,13 @@ export default function RosterClient({
               These students signed up but are not on the roster — possible name mismatch or nickname.
             </p>
           </div>
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="text-left px-4 py-3 font-semibold text-gray-600">Name on Signup</th>
+                <th className="text-left px-4 py-3 font-semibold text-gray-600">Email</th>
+                <th className="text-left px-4 py-3 font-semibold text-gray-600">Phone</th>
                 <th className="text-left px-4 py-3 font-semibold text-gray-600">Location</th>
                 <th className="text-left px-4 py-3 font-semibold text-gray-600">Date & Time</th>
               </tr>
@@ -274,6 +303,12 @@ export default function RosterClient({
                 <tr key={signup.id} className="border-b border-gray-100">
                   <td className="px-4 py-3 font-medium text-gray-900">
                     {signup.first_name} {signup.last_name}
+                  </td>
+                  <td className="px-4 py-3 text-gray-600 text-xs whitespace-nowrap">
+                    {signup.email || <span className="text-gray-300">—</span>}
+                  </td>
+                  <td className="px-4 py-3 text-gray-600 text-xs whitespace-nowrap">
+                    {signup.phone || <span className="text-gray-300">—</span>}
                   </td>
                   <td className="px-4 py-3 text-gray-600">
                     {signup.slot?.location?.name || '-'}
@@ -285,6 +320,7 @@ export default function RosterClient({
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

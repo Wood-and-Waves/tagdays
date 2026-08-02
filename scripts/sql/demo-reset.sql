@@ -280,15 +280,25 @@ select
   split_part(p.full_name, ' ', 1),
   split_part(p.full_name, ' ', 2),
   lower(split_part(p.full_name, ' ', 1)) || '.' || lower(split_part(p.full_name, ' ', 2)) || '@example.com',
-  case when p.rn % 3 = 0 then '+1555010' || lpad((p.rn % 100)::text, 3, '0') else null end,
+  c.phone,
   p.role_name,
-  case when p.rn % 3 = 0 then 'both' else 'email' end,
-  case when p.rn % 3 = 0 then true else false end,
-  case when p.rn % 3 = 0 then now() - ((p.rn % 14) || ' days')::interval else null end,
+  -- Preference and consent follow the phone, so a signup can never claim it
+  -- wants texts while having no number to text.
+  case when c.phone is not null then 'both' else 'email' end,
+  c.phone is not null,
+  case when c.phone is not null then now() - ((p.rn % 14) || ' days')::interval else null end,
   true,
   now() - ((p.rn % 14) || ' days')::interval - ((p.idx * 37) || ' minutes')::interval
 from picked p
-join event_roles r on r.event_id = p.event_id and r.name = p.role_name;
+join event_roles r on r.event_id = p.event_id and r.name = p.role_name
+-- Phone is derived from the NAME, not the slot: it must be the same number on
+-- every shift that person takes, and must not depend on slot position (the
+-- previous slot-based rule gave phones only to slots that had zero students).
+cross join lateral (
+  select case when get_byte(decode(md5(p.full_name), 'hex'), 0) % 3 = 0
+              then '+1555010' || lpad((get_byte(decode(md5(p.full_name), 'hex'), 1) % 100)::text, 3, '0')
+              else null end as phone
+) c;
 
 commit;
 
