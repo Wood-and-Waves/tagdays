@@ -113,7 +113,8 @@ Paste the band roster once, and the site cross-references it against signups.
 
 - **No shifts** — 12 students who haven't signed up for anything
 - **1 shift** / **2+ shifts**
-- **Unmatched Student Signups** — people who signed up but aren't on the roster (nickname or spelling mismatch)
+- **Email** and **Phone** columns — pulled from what the volunteer entered when they signed up, so you can reach them without leaving the page
+- **Unmatched Student Signups** — people who signed up but aren't on the roster (nickname or spelling mismatch), with their contact details so you can sort it out
 
 > "This answers the question you actually care about: *who still needs a shift?* — instead of reading down a paper list."
 
