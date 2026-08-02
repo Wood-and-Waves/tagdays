@@ -109,7 +109,7 @@ Every volunteer, searchable by name, email, or location. Show:
 - **Export CSV** — opens in Excel or Google Sheets, including whether each person consented to texts
 
 ### Roster ← *the one that lands*
-Paste the band roster once, and the site cross-references it against signups.
+Paste the band roster once, and the site cross-references it against signups. **Pick the event with the buttons at the top** — the counts are per fundraiser, so last year's shifts never inflate this year's numbers.
 
 - **No shifts** — 12 students who haven't signed up for anything
 - **1 shift** / **2+ shifts**
