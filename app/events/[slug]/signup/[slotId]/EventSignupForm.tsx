@@ -89,7 +89,7 @@ export default function EventSignupForm({
       return
     }
 
-    router.push(`/confirm?event=${eventSlug}`)
+    router.push(`/confirm?event=${eventSlug}&r=${form.reminder_preference}`)
   }
 
   if (allFull) {

@@ -6,9 +6,17 @@ import SiteFooter from '@/app/components/SiteFooter'
 export default async function ConfirmPage({
   searchParams,
 }: {
-  searchParams: Promise<{ event?: string }>
+  searchParams: Promise<{ event?: string; r?: string }>
 }) {
-  const { event: eventSlug } = await searchParams
+  const { event: eventSlug, r: reminderPreference } = await searchParams
+
+  // Name the channel the volunteer actually chose — an SMS-only signup should
+  // not be told to watch for an email. Falls back to the neutral wording.
+  const confirmationChannel =
+    reminderPreference === 'sms' ? 'text message'
+      : reminderPreference === 'both' ? 'confirmation email and text'
+        : reminderPreference === 'email' ? 'confirmation email'
+          : 'confirmation'
 
   // Look up the event (if we know which one) so the confirmation reflects that
   // event's own reminder notes instead of hardcoded, single-event text.
@@ -38,7 +46,7 @@ export default async function ConfirmPage({
             Thank you for signing up!
           </h2>
           <p className="text-gray-600 mb-6">
-            You'll receive a confirmation email shortly. We'll also send you
+            You'll receive a {confirmationChannel} shortly. We'll also send you
             reminders before your shift.
           </p>
 

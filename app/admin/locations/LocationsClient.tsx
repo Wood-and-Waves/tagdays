@@ -53,7 +53,7 @@ export default function LocationsClient({ locations }: { locations: Location[] }
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this location? All associated slots will also be deleted.')) return
+    if (!confirm('Delete this location? Any shifts at this location will be kept but will no longer show a location.')) return
     
     await fetch('/api/admin/locations', {
       method: 'DELETE',

@@ -47,7 +47,7 @@ export default function EventClient({
         full: roleSignups.length >= effectiveMax,
       }
     })
-    const allFull = roleData.every(r => r.full)
+    const allFull = roleData.length > 0 && roleData.every(r => r.full)
     return { roleData, allFull }
   }
 

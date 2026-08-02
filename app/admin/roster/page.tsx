@@ -16,7 +16,7 @@ export default async function RosterPage() {
     .from('signups')
     .select('*, slot:slots(*, location:locations(*))')
     .eq('cancelled', false)
-    .eq('role', 'student')
+    .ilike('role', 'student')
 
   return (
     <div>
