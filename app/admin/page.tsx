@@ -31,11 +31,6 @@ export default async function AdminDashboard({
     .order('date', { ascending: true })
     .order('start_time', { ascending: true })
 
-  const { data: locations } = await supabase
-    .from('locations')
-    .select('*')
-
-  const totalLocations = locations?.length || 0
   const totalSlots = slots?.length || 0
 
   const getSlotData = (slot: any) => {
@@ -89,11 +84,7 @@ export default async function AdminDashboard({
       ) : (
         <>
           {/* Stats */}
-          <div className="grid grid-cols-4 gap-4 mb-8">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-              <p className="text-sm text-gray-500">Total Locations</p>
-              <p className="text-3xl font-bold text-gray-900">{totalLocations}</p>
-            </div>
+          <div className="grid grid-cols-3 gap-4 mb-8">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
               <p className="text-sm text-gray-500">Total Shifts</p>
               <p className="text-3xl font-bold text-gray-900">{totalSlots}</p>
