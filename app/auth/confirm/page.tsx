@@ -11,22 +11,34 @@ function ConfirmForm() {
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [linkState, setLinkState] = useState<InviteLinkState>('checking')
+  const [urlHash, setUrlHash] = useState<string | null>(null)
+  const [hasSession, setHasSession] = useState(false)
+  const [settled, setSettled] = useState(false)
 
   useEffect(() => {
-    // Supabase turns the token in the invite URL into a session as it starts up.
-    // It reports INITIAL_SESSION either way, so the session — not the event — is
-    // what tells us whether the link actually worked.
+    // Read the hash BEFORE creating the client — Supabase strips it from the
+    // address bar as it starts up, and it is the only trustworthy record of
+    // whether this particular link granted access.
+    setUrlHash(window.location.hash)
+
     const supabase = createClient()
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setLinkState(prev => prev === 'ready' ? prev : inviteLinkState(event, !!session))
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setHasSession(prev => prev || !!session)
+      setSettled(true)
     })
     return () => subscription.unsubscribe()
   }, [])
 
+  const linkState: InviteLinkState =
+    urlHash === null ? 'checking' : inviteLinkState({ urlHash, hasSession, settled })
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+
+    // Never change a password unless this link is what granted the session —
+    // otherwise an already-signed-in admin would overwrite their own.
+    if (linkState !== 'ready') return
 
     if (password !== confirm) {
       setError('Passwords do not match.')
