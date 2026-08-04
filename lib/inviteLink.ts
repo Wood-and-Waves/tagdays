@@ -1,41 +1,33 @@
-export type InviteLinkState = 'checking' | 'ready' | 'expired'
+export type InviteLinkResult =
+  | { kind: 'tokens'; accessToken: string; refreshToken: string }
+  | { kind: 'failed' }
 
 /**
- * Decides what the "Set your password" page should show.
+ * Reads the session Supabase handed back on an email link (invite, recovery,
+ * magic link) from the URL fragment.
  *
- * Setting a password acts on whoever is currently signed in, so the only safe
- * rule is: the live session must be the exact one this link delivered. The hash
- * Supabase puts on the URL carries that session's access token, so comparing it
- * against the live session proves they are the same one — no guessing from
- * event names, no race with startup order.
+ * This exists because @supabase/ssr's browser client is hardcoded to the PKCE
+ * flow, while Supabase's email links use the implicit flow — the client throws
+ * "Not a valid PKCE flow url" internally, swallows it, and creates no session
+ * at all. The page therefore adopts the session itself via setSession().
  *
- * Two incidents on 2026-08-04 came from getting this wrong. An admin who was
- * already signed in clicked an invite; the password they typed was applied to
- * their own account, locking them out, while the invited account got nothing.
+ * Returning 'failed' for anything other than a complete token pair is the
+ * safety property that matters: without it the page would fall back to whoever
+ * happened to be signed in already, and setting a password would overwrite
+ * THEIR account. That is exactly how an admin locked themselves out on
+ * 2026-08-04.
  */
-export function inviteLinkState(input: {
-  /** window.location.hash, captured before the Supabase client clears it. */
-  urlHash: string
-  /** access_token of the live session, or null if there is none yet. */
-  sessionAccessToken: string | null
-  /** Whether Supabase has reported its startup state at least once. */
-  settled: boolean
-}): InviteLinkState {
-  const params = new URLSearchParams(input.urlHash.replace(/^#/, ''))
+export function readInviteLink(urlHash: string): InviteLinkResult {
+  const params = new URLSearchParams(urlHash.replace(/^#/, ''))
 
-  // Supabase told us outright that the link did not work.
+  // Supabase says outright that the link did not work.
   if (params.get('error') || params.get('error_code') || params.get('error_description')) {
-    return 'expired'
+    return { kind: 'failed' }
   }
 
-  const linkToken = params.get('access_token')
+  const accessToken = params.get('access_token')
+  const refreshToken = params.get('refresh_token')
+  if (!accessToken || !refreshToken) return { kind: 'failed' }
 
-  // Nothing in the URL granted access, so any session belongs to someone who was
-  // already signed in — not to the person this invite was for.
-  if (!linkToken) return 'expired'
-
-  // The session must be the one this link delivered, not one already in the browser.
-  if (input.sessionAccessToken === linkToken) return 'ready'
-
-  return input.settled ? 'expired' : 'checking'
+  return { kind: 'tokens', accessToken, refreshToken }
 }

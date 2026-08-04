@@ -3,7 +3,9 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { inviteLinkState, type InviteLinkState } from '@/lib/inviteLink'
+import { readInviteLink } from '@/lib/inviteLink'
+
+type InviteLinkState = 'checking' | 'ready' | 'expired'
 
 function ConfirmForm() {
   const router = useRouter()
@@ -11,26 +13,31 @@ function ConfirmForm() {
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [urlHash, setUrlHash] = useState<string | null>(null)
-  const [sessionAccessToken, setSessionAccessToken] = useState<string | null>(null)
-  const [settled, setSettled] = useState(false)
+  const [linkState, setLinkState] = useState<InviteLinkState>('checking')
 
   useEffect(() => {
-    // Read the hash BEFORE creating the client — Supabase strips it from the
-    // address bar as it starts up, and it is the only trustworthy record of
-    // which session this particular link delivered.
-    setUrlHash(window.location.hash)
+    const link = readInviteLink(window.location.hash)
 
-    const supabase = createClient()
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSessionAccessToken(prev => prev ?? session?.access_token ?? null)
-      setSettled(true)
-    })
-    return () => subscription.unsubscribe()
+    if (link.kind === 'failed') {
+      setLinkState('expired')
+      return
+    }
+
+    // Adopt the link's session explicitly. @supabase/ssr's browser client only
+    // understands the PKCE flow and silently refuses Supabase's implicit email
+    // links, so waiting for it to pick this up would wait forever — and would
+    // leave whoever is already signed in as the active session.
+    let cancelled = false
+    createClient()
+      .auth.setSession({ access_token: link.accessToken, refresh_token: link.refreshToken })
+      .then(({ data, error }) => {
+        if (cancelled) return
+        setLinkState(error || !data.session ? 'expired' : 'ready')
+        // Don't leave credentials sitting in the address bar or history.
+        window.history.replaceState(null, '', window.location.pathname)
+      })
+    return () => { cancelled = true }
   }, [])
-
-  const linkState: InviteLinkState =
-    urlHash === null ? 'checking' : inviteLinkState({ urlHash, sessionAccessToken, settled })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

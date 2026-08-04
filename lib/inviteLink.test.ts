@@ -1,51 +1,34 @@
 import { describe, it, expect } from 'vitest'
-import { inviteLinkState } from './inviteLink'
+import { readInviteLink } from './inviteLink'
 
-const GRANTED = '#access_token=THE-LINKS-TOKEN&refresh_token=def&type=invite'
-const EXPIRED = '#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired'
-
-describe('inviteLinkState', () => {
-  it('is ready only when the live session is the one the link delivered', () => {
-    expect(inviteLinkState({
-      urlHash: GRANTED, sessionAccessToken: 'THE-LINKS-TOKEN', settled: true,
-    })).toBe('ready')
+describe('readInviteLink', () => {
+  it('extracts both tokens from a link that granted access', () => {
+    const r = readInviteLink('#access_token=AAA&refresh_token=BBB&expires_in=3600&type=recovery')
+    expect(r).toEqual({ kind: 'tokens', accessToken: 'AAA', refreshToken: 'BBB' })
   })
 
-  // The whole point: a session that did not come from this link must never
-  // unlock the form, or the password overwrites whoever is already signed in.
-  it('refuses when a different session is live than the link delivered', () => {
-    expect(inviteLinkState({
-      urlHash: GRANTED, sessionAccessToken: 'SOMEONE-ELSES-TOKEN', settled: true,
-    })).toBe('expired')
+  it('reports failure when Supabase returned an error', () => {
+    const r = readInviteLink('#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired')
+    expect(r).toEqual({ kind: 'failed' })
   })
 
-  it('waits while the session is still being established', () => {
-    expect(inviteLinkState({
-      urlHash: GRANTED, sessionAccessToken: null, settled: false,
-    })).toBe('checking')
+  // Opening the page directly. There is nothing to adopt, so the form must not
+  // appear — otherwise the password would land on whoever is already signed in,
+  // which is how an admin locked themselves out on 2026-08-04.
+  it('reports failure when the page was opened without a link', () => {
+    expect(readInviteLink('')).toEqual({ kind: 'failed' })
+    expect(readInviteLink('#')).toEqual({ kind: 'failed' })
   })
 
-  it('reports expired when the link granted access but no session materialised', () => {
-    expect(inviteLinkState({
-      urlHash: GRANTED, sessionAccessToken: null, settled: true,
-    })).toBe('expired')
+  it('reports failure when the pair is incomplete', () => {
+    expect(readInviteLink('#access_token=AAA')).toEqual({ kind: 'failed' })
+    expect(readInviteLink('#refresh_token=BBB')).toEqual({ kind: 'failed' })
   })
 
-  // 2026-08-04 incident: an already-signed-in admin clicked an expired invite.
-  // No new session was created, so the page saw the admin's own session and the
-  // password they typed overwrote their own account.
-  it('reports expired when the link failed, even though a session exists', () => {
-    expect(inviteLinkState({
-      urlHash: EXPIRED, sessionAccessToken: 'ADMINS-OWN-TOKEN', settled: true,
-    })).toBe('expired')
-  })
-
-  it('never offers the form when the URL granted nothing', () => {
-    expect(inviteLinkState({ urlHash: '', sessionAccessToken: 'ADMINS-OWN-TOKEN', settled: true })).toBe('expired')
-    expect(inviteLinkState({ urlHash: '', sessionAccessToken: null, settled: true })).toBe('expired')
-  })
-
-  it('treats a failed link as settled immediately, without waiting', () => {
-    expect(inviteLinkState({ urlHash: EXPIRED, sessionAccessToken: null, settled: false })).toBe('expired')
+  it('ignores a leading hash and tolerates junk', () => {
+    expect(readInviteLink('access_token=AAA&refresh_token=BBB')).toEqual({
+      kind: 'tokens', accessToken: 'AAA', refreshToken: 'BBB',
+    })
+    expect(readInviteLink('#not-a-query-string')).toEqual({ kind: 'failed' })
   })
 })
