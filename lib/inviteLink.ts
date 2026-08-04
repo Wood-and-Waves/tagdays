@@ -3,20 +3,21 @@ export type InviteLinkState = 'checking' | 'ready' | 'expired'
 /**
  * Decides what the "Set your password" page should show.
  *
- * The URL is the source of truth, not the session. Supabase puts the outcome of
- * the invite link in the hash before the page loads: `#access_token=...` when it
- * granted access, `#error=...` when the link was expired or already used.
+ * Setting a password acts on whoever is currently signed in, so the only safe
+ * rule is: the live session must be the exact one this link delivered. The hash
+ * Supabase puts on the URL carries that session's access token, so comparing it
+ * against the live session proves they are the same one — no guessing from
+ * event names, no race with startup order.
  *
- * Reading the session alone is not safe here. On 2026-08-04 an admin who was
- * already signed in clicked an expired invite: Supabase created no new session,
- * so the page saw the admin's own session, showed the form, and the password
- * they typed overwrote THEIR OWN account instead of the invited one. A session
- * that did not come from this link must never unlock the form.
+ * Two incidents on 2026-08-04 came from getting this wrong. An admin who was
+ * already signed in clicked an invite; the password they typed was applied to
+ * their own account, locking them out, while the invited account got nothing.
  */
 export function inviteLinkState(input: {
   /** window.location.hash, captured before the Supabase client clears it. */
   urlHash: string
-  hasSession: boolean
+  /** access_token of the live session, or null if there is none yet. */
+  sessionAccessToken: string | null
   /** Whether Supabase has reported its startup state at least once. */
   settled: boolean
 }): InviteLinkState {
@@ -27,12 +28,14 @@ export function inviteLinkState(input: {
     return 'expired'
   }
 
+  const linkToken = params.get('access_token')
+
   // Nothing in the URL granted access, so any session belongs to someone who was
   // already signed in — not to the person this invite was for.
-  if (!params.get('access_token')) {
-    return 'expired'
-  }
+  if (!linkToken) return 'expired'
 
-  if (input.hasSession) return 'ready'
+  // The session must be the one this link delivered, not one already in the browser.
+  if (input.sessionAccessToken === linkToken) return 'ready'
+
   return input.settled ? 'expired' : 'checking'
 }
