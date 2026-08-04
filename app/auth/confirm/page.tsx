@@ -1,26 +1,27 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { inviteLinkState, type InviteLinkState } from '@/lib/inviteLink'
 
 function ConfirmForm() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [ready, setReady] = useState(false)
+  const [linkState, setLinkState] = useState<InviteLinkState>('checking')
 
   useEffect(() => {
-    // Exchange the token from the URL for a session
+    // Supabase turns the token in the invite URL into a session as it starts up.
+    // It reports INITIAL_SESSION either way, so the session — not the event — is
+    // what tells us whether the link actually worked.
     const supabase = createClient()
-    supabase.auth.onAuthStateChange((event) => {
-      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
-        setReady(true)
-      }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setLinkState(prev => prev === 'ready' ? prev : inviteLinkState(event, !!session))
     })
+    return () => subscription.unsubscribe()
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,8 +55,10 @@ function ConfirmForm() {
     <main className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
       <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Set Your Password</h1>
-          <p className="text-gray-500 mt-1">Tag Days 2026 Admin</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {linkState === 'expired' ? 'Invite Link Expired' : 'Set Your Password'}
+          </h1>
+          <p className="text-gray-500 mt-1">HHS Band Boosters Admin</p>
         </div>
 
         {error && (
@@ -64,7 +67,14 @@ function ConfirmForm() {
           </div>
         )}
 
-        {!ready ? (
+        {linkState === 'expired' ? (
+          <p className="text-center text-gray-600 text-sm leading-relaxed">
+            This invite link has expired. Request a new link by sending an email to{' '}
+            <a href="mailto:fundraising@huntleybands.com" className="text-brand-700 underline">
+              fundraising@huntleybands.com
+            </a>.
+          </p>
+        ) : linkState === 'checking' ? (
           <p className="text-center text-gray-500 text-sm">Verifying your invite link...</p>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
