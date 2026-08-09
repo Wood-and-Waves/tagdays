@@ -17,8 +17,16 @@ function LoginForm() {
   useEffect(() => {
     const code = searchParams.get('error')
     if (!code) return
+
+    // Supabase refuses an unknown Google account with "Signups not allowed for
+    // this instance", and our own callback refuses one with no invite. Both mean
+    // the same thing to the person reading it, so say it the same plain way
+    // rather than leaking either bit of machinery.
+    const notInvited =
+      code === 'not_invited' || /signups? not allowed/i.test(code)
+
     setError(
-      code === 'not_invited'
+      notInvited
         ? "That Google account hasn't been invited yet. Ask an admin to add you first."
         : code
     )
