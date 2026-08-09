@@ -18,6 +18,20 @@ export async function POST(request: Request) {
   })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Mark the address confirmed so the invitee can sign in with Google straight
+  // away. Supabase only attaches a Google identity to an existing account when
+  // that account's email is already confirmed; without this they would be forced
+  // through the invite email first, which is exactly the fragile path Google
+  // sign-in is meant to give them an alternative to.
+  if (data.user) {
+    const { error: confirmError } = await adminClient.auth.admin.updateUserById(data.user.id, {
+      email_confirm: true,
+    })
+    // Not fatal — the invite email still works, so report it rather than failing.
+    if (confirmError) console.error('Could not pre-confirm invited email:', confirmError.message)
+  }
+
   return NextResponse.json({ user: data.user })
 }
 

@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { readInviteLink } from '@/lib/inviteLink'
+import GoogleSignInButton from '@/app/components/GoogleSignInButton'
 
 type InviteLinkState = 'checking' | 'ready' | 'expired'
 
@@ -132,6 +133,18 @@ function ConfirmForm() {
             >
               {loading ? 'Setting password...' : 'Set Password & Sign In'}
             </button>
+
+            <div className="flex items-center gap-3 pt-2">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-xs text-gray-400 uppercase tracking-wide">or</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+
+            <p className="text-center text-xs text-gray-500">
+              Prefer not to create a password? Use the Google account that matches
+              your invited email address.
+            </p>
+            <GoogleSignInButton label="Sign in with Google instead" />
           </form>
         )}
       </div>

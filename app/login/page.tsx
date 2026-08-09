@@ -1,15 +1,28 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import GoogleSignInButton from '@/app/components/GoogleSignInButton'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  // The Google callback reports failures back here.
+  useEffect(() => {
+    const code = searchParams.get('error')
+    if (!code) return
+    setError(
+      code === 'not_invited'
+        ? "That Google account hasn't been invited yet. Ask an admin to add you first."
+        : code
+    )
+  }, [searchParams])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -20,7 +33,14 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
-      setError('Invalid email or password.')
+      // Keep the familiar wording for a genuinely wrong email or password, but
+      // show anything else verbatim. Reporting every failure as bad credentials
+      // is what made a lockout on 2026-08-04 so hard to diagnose.
+      setError(
+        error.message.toLowerCase().includes('invalid login credentials')
+          ? 'Invalid email or password.'
+          : error.message
+      )
       setLoading(false)
       return
     }
@@ -42,6 +62,14 @@ export default function LoginPage() {
             {error}
           </div>
         )}
+
+        <GoogleSignInButton />
+
+        <div className="flex items-center gap-3 my-6">
+          <div className="flex-1 h-px bg-gray-200" />
+          <span className="text-xs text-gray-400 uppercase tracking-wide">or</span>
+          <div className="flex-1 h-px bg-gray-200" />
+        </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
@@ -80,5 +108,13 @@ export default function LoginPage() {
         </form>
       </div>
     </main>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   )
 }
