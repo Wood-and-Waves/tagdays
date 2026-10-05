@@ -20,6 +20,16 @@ function ConfirmForm() {
     const link = readInviteLink(window.location.hash)
 
     if (link.kind === 'failed') {
+      // One screen covers every way a link can fail, which is why the real
+      // cause stayed hidden through two debugging sessions. Record which one
+      // happened — in the console, never on the page.
+      const reason = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+      console.error('[auth/confirm] link rejected', {
+        error: reason.get('error'),
+        error_code: reason.get('error_code'),
+        error_description: reason.get('error_description'),
+        hadHash: window.location.hash.length > 1,
+      })
       setLinkState('expired')
       return
     }
@@ -33,9 +43,19 @@ function ConfirmForm() {
       .auth.setSession({ access_token: link.accessToken, refresh_token: link.refreshToken })
       .then(({ data, error }) => {
         if (cancelled) return
+        if (error || !data.session) {
+          console.error('[auth/confirm] setSession failed', error?.message ?? 'no session returned')
+        }
         setLinkState(error || !data.session ? 'expired' : 'ready')
         // Don't leave credentials sitting in the address bar or history.
         window.history.replaceState(null, '', window.location.pathname)
+      })
+      // setSession rethrows anything that isn't an AuthError, which would
+      // otherwise leave this page on "Verifying..." forever.
+      .catch((err: unknown) => {
+        if (cancelled) return
+        console.error('[auth/confirm] setSession threw', err)
+        setLinkState('expired')
       })
     return () => { cancelled = true }
   }, [])

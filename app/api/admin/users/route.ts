@@ -1,8 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { sendAdminInviteEmail } from '@/lib/email/sendAdminInvite'
 import { NextResponse } from 'next/server'
 
 const SUPER_ADMIN_EMAIL = 'noreply@hhstagdays.com'
+
+function alreadyRegistered(error: { code?: string; message: string }) {
+  return error.code === 'email_exists' || /already been registered/i.test(error.message)
+}
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -13,26 +18,47 @@ export async function POST(request: Request) {
   if (!email) return NextResponse.json({ error: 'Email is required.' }, { status: 400 })
 
   const adminClient = createAdminClient()
-  const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm`,
+
+  // Create the account already confirmed, so a Google account can attach to it
+  // right away. We deliberately do NOT use inviteUserByEmail: its email carries
+  // a confirmation token, and confirming the address clears that same token —
+  // which is why every invite link died on arrival between 2026-08-09 and now.
+  const { data: created, error: createError } = await adminClient.auth.admin.createUser({
+    email,
+    email_confirm: true,
   })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
-  // Mark the address confirmed so the invitee can sign in with Google straight
-  // away. Supabase only attaches a Google identity to an existing account when
-  // that account's email is already confirmed; without this they would be forced
-  // through the invite email first, which is exactly the fragile path Google
-  // sign-in is meant to give them an alternative to.
-  if (data.user) {
-    const { error: confirmError } = await adminClient.auth.admin.updateUserById(data.user.id, {
-      email_confirm: true,
-    })
-    // Not fatal — the invite email still works, so report it rather than failing.
-    if (confirmError) console.error('Could not pre-confirm invited email:', confirmError.message)
+  // An address that already exists is not a failure — re-sending is how you
+  // give someone a fresh link.
+  const resent = !!createError && alreadyRegistered(createError)
+  if (createError && !resent) {
+    return NextResponse.json({ error: createError.message }, { status: 500 })
   }
 
-  return NextResponse.json({ user: data.user })
+  // A recovery token lives in its own column, so confirming the email above
+  // cannot wipe it. That separation is the whole fix.
+  const { data: link, error: linkError } = await adminClient.auth.admin.generateLink({
+    type: 'recovery',
+    email,
+    options: { redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm` },
+  })
+
+  if (linkError || !link?.properties?.action_link) {
+    return NextResponse.json(
+      { error: linkError?.message ?? 'Could not generate a sign-in link.' },
+      { status: 500 }
+    )
+  }
+
+  // Fatal on purpose: without this email they have no way into the account.
+  try {
+    await sendAdminInviteEmail({ to: email, actionLink: link.properties.action_link })
+  } catch (sendError) {
+    const message = sendError instanceof Error ? sendError.message : 'Could not send the email.'
+    return NextResponse.json({ error: `Account ready, but the email failed: ${message}` }, { status: 500 })
+  }
+
+  return NextResponse.json({ user: created?.user ?? link.user, resent })
 }
 
 export async function DELETE(request: Request) {

@@ -31,7 +31,7 @@ export default function UsersClient({ users }: { users: any[] }) {
       return
     }
 
-    setSuccess(`Invite sent to ${email}`)
+    setSuccess(`Invite ${data.resent ? 're-sent' : 'sent'} to ${email}`)
     setEmail('')
     router.refresh()
     setLoading(false)
@@ -120,7 +120,7 @@ export default function UsersClient({ users }: { users: any[] }) {
               <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
                 <td className="px-4 py-3 text-gray-900">{user.email}</td>
                 <td className="px-4 py-3">
-                  {user.invited_at && !user.last_sign_in_at ? (
+                  {!user.last_sign_in_at ? (
                     <span className="bg-yellow-100 text-yellow-700 text-xs font-semibold px-2 py-1 rounded-full">
                       Invited
                     </span>
