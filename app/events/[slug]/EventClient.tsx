@@ -60,11 +60,16 @@ export default function EventClient({
 
   const byTime = [...visibleSlots].sort((a, b) => {
     if (a.date !== b.date) return a.date.localeCompare(b.date)
-    return a.start_time.localeCompare(b.start_time)
+    if (a.start_time !== b.start_time) return a.start_time.localeCompare(b.start_time)
+    return a.end_time.localeCompare(b.end_time)
   })
 
   const byTimeGrouped = byTime.reduce((acc, slot) => {
-    const key = `${slot.date}-${slot.start_time}`
+    // Keyed on the END as well as the start. Shifts are no longer all two
+    // hours, so two locations can share a start and finish at different times
+    // — grouping on the start alone put them under one heading whose end time
+    // was whichever slot happened to be read first.
+    const key = `${slot.date}-${slot.start_time}-${slot.end_time}`
     const label = `${formatDate(slot.date)} · ${formatTime(slot.start_time)} - ${formatTime(slot.end_time)}`
     if (!acc[key]) acc[key] = { label, slots: [] }
     acc[key].slots.push(slot)
