@@ -1,40 +1,40 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { generateSlotTimes, formatDuration, DEFAULT_SHIFT_MINUTES } from '@/lib/slotTimes'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { event_id, location_id, date, start_time, end_time, role_capacities } = await request.json()
+  const { event_id, location_id, date, start_time, end_time, role_capacities, shift_minutes } = await request.json()
 
   if (!event_id || !date || !start_time || !end_time) {
     return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
   }
 
-  const slots = []
-  let current = start_time
-
-  while (current < end_time) {
-    const [h, m] = current.split(':').map(Number)
-    const nextH = h + 2
-    const next = `${String(nextH).padStart(2, '0')}:${String(m).padStart(2, '0')}`
-    if (next > end_time) break
-
-    slots.push({
-      event_id,
-      location_id: location_id || null,
-      date,
-      start_time: current,
-      end_time: next,
-    })
-
-    current = next
+  // Older callers sent no length at all and meant two hours.
+  const shiftMinutes = Number(shift_minutes) || DEFAULT_SHIFT_MINUTES
+  if (shiftMinutes <= 0) {
+    return NextResponse.json({ error: 'Shift length must be more than zero.' }, { status: 400 })
   }
 
-  if (slots.length === 0) {
-    return NextResponse.json({ error: 'No slots could be generated. Check your time range.' }, { status: 400 })
+  const times = generateSlotTimes(start_time, end_time, shiftMinutes)
+
+  if (times.length === 0) {
+    return NextResponse.json(
+      { error: `No shifts fit between ${start_time} and ${end_time} at ${formatDuration(shiftMinutes)} each.` },
+      { status: 400 },
+    )
   }
+
+  const slots = times.map(t => ({
+    event_id,
+    location_id: location_id || null,
+    date,
+    start_time: t.start,
+    end_time: t.end,
+  }))
 
   const { data, error } = await supabase
     .from('slots')

@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { toMinutes } from '@/lib/slotTimes'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -10,6 +11,17 @@ export async function POST(request: Request) {
 
   if (!event_id || !date || !start_time || !end_time) {
     return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
+  }
+
+  // Nothing checked this before, so a backwards shift saved silently. Easier to
+  // hit now that the time pickers offer every quarter hour rather than 15 whole ones.
+  const startMinutes = toMinutes(start_time)
+  const endMinutes = toMinutes(end_time)
+  if (startMinutes === null || endMinutes === null) {
+    return NextResponse.json({ error: 'Start and end must be times.' }, { status: 400 })
+  }
+  if (endMinutes <= startMinutes) {
+    return NextResponse.json({ error: 'The end time must be after the start time.' }, { status: 400 })
   }
 
   const { data, error } = await supabase

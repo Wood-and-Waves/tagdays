@@ -94,7 +94,7 @@ All 16 stops with addresses and notes. Entered once, reused for every event, eve
 ### Slots
 The scheduling workhorse. Two ways to build a weekend:
 
-1. **Bulk Generate** — pick a location, a date, and a time range; it creates the two-hour shifts. Show the live preview counting them.
+1. **Bulk Generate** — pick a location, a date, a time range and how long each shift is; it fills the day with back-to-back shifts. Show the live preview counting them. Times run in quarter hours, so an 11:15 start is fine.
 2. **Import from CSV** — paste a spreadsheet and create every location and shift at once. Show **Download Template** and the preview step, which reports what's new versus what already exists.
 
 > "Setting up a full Tag Days weekend is about ten minutes of work, not an evening."

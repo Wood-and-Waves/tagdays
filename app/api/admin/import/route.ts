@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
+import { generateSlotTimes, DEFAULT_SHIFT_MINUTES } from '@/lib/slotTimes'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -62,15 +63,15 @@ export async function POST(request: Request) {
       locationsAdded++
     }
 
-    let current = start_time.trim()
-    const endTime = end_time.trim()
+    const shiftMinutes = Number(row.shift_minutes) || DEFAULT_SHIFT_MINUTES
+    const times = generateSlotTimes(start_time, end_time, shiftMinutes)
 
-    while (current < endTime) {
-      const [h] = current.split(':').map(Number)
-      const nextH = h + 2
-      const next = `${String(nextH).padStart(2, '0')}:00`
-      if (next > endTime) break
+    if (times.length === 0) {
+      errors.push(`No shifts fit between ${start_time} and ${end_time} for ${location_name}`)
+      continue
+    }
 
+    for (const { start: current, end: next } of times) {
       const { data: dupSlot } = await adminClient
         .from('slots')
         .select('id')
@@ -99,8 +100,6 @@ export async function POST(request: Request) {
           slotsCreated++
         }
       }
-
-      current = next
     }
   }
 

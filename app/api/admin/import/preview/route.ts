@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
+import { generateSlotTimes, DEFAULT_SHIFT_MINUTES } from '@/lib/slotTimes'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -49,14 +50,9 @@ export async function POST(request: Request) {
       }
     }
 
-    let current = start_time.trim()
-    const endTime = end_time.trim()
+    const shiftMinutes = Number(row.shift_minutes) || DEFAULT_SHIFT_MINUTES
 
-    while (current < endTime) {
-      const [h] = current.split(':').map(Number)
-      const next = `${String(h + 2).padStart(2, '0')}:00`
-      if (next > endTime) break
-
+    for (const { start: current, end: next } of generateSlotTimes(start_time, end_time, shiftMinutes)) {
       const slotLabel = `${date} ${current}–${next}`
 
       if (loc) {
@@ -77,8 +73,6 @@ export async function POST(request: Request) {
       } else {
         locationSummary[location_name].newSlots.push(slotLabel)
       }
-
-      current = next
     }
   }
 

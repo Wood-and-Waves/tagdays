@@ -173,6 +173,9 @@ async function sendReminder({
   }
 }
 
+// Every quarter hour, matching the grid shifts are scheduled on. On the old
+// hourly schedule a shift at 11:15 with a 24-hour reminder was only noticed at
+// the next wake-up, so the reminder went out up to 45 minutes late.
 export const config: Config = {
-  schedule: '0 * * * *'
+  schedule: '*/15 * * * *'
 }

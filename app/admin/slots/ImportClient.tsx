@@ -3,10 +3,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-const TEMPLATE = `location_name,address,notes,date,start_time,end_time,max_students,max_parents
-Jewel - East Door,11500 Haligus Rd Huntley IL,,2026-07-10,08:00,18:00,3,1
-Jewel - West Door,11500 Haligus Rd Huntley IL,,2026-07-10,08:00,18:00,3,1
-Culvers,12160 Ridgefield Pkwy Huntley IL,Cover both entrance and drive-thru,2026-07-11,10:00,16:00,2,1`
+// shift_minutes is optional — leave it out or leave it blank for two-hour shifts,
+// which is what every row meant before the column existed.
+const TEMPLATE = `location_name,address,notes,date,start_time,end_time,shift_minutes,max_students,max_parents
+Jewel - East Door,11500 Haligus Rd Huntley IL,,2026-07-10,08:00,18:00,120,3,1
+Jewel - West Door,11500 Haligus Rd Huntley IL,,2026-07-10,08:00,18:00,120,3,1
+Culvers,12160 Ridgefield Pkwy Huntley IL,Cover both entrance and drive-thru,2026-07-11,10:15,16:15,90,2,1`
 
 export default function ImportClient({ existingLocationNames, eventId }: { existingLocationNames: string[], eventId: string }) {
   const router = useRouter()
@@ -200,7 +202,7 @@ export default function ImportClient({ existingLocationNames, eventId }: { exist
             <div>
               <p className="text-xs text-gray-400 mb-3">
                 Works with comma or tab-separated values. Compatible with Excel, Numbers, and Google Sheets.
-                Each row creates a location (if new) and generates 2-hour slots between start and end time.
+                Each row creates a location (if new) and fills the time range with back-to-back shifts. Set <code>shift_minutes</code> to choose their length, or leave it blank for 2 hours.
               </p>
               <button
                 onClick={downloadTemplate}
