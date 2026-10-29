@@ -119,6 +119,9 @@ export default function EventsClient({ events }: { events: Event[] }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
     })
+    // An open editor holding the row that just went is a form whose Save can only
+    // fail, and it fails in Postgres's words rather than saying the event is gone.
+    if (editing?.id === id) resetForm()
     router.refresh()
   }
 
@@ -305,7 +308,9 @@ export default function EventsClient({ events }: { events: Event[] }) {
           </div>
         )}
         {activeEvents.map(event => (
-          <div key={event.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div key={event.id} className={`bg-white rounded-lg shadow-sm p-4 ${
+            editing?.id === event.id ? 'border-2 border-brand-600' : 'border border-gray-200'
+          }`}>
             <div className="flex justify-between items-start">
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -315,6 +320,11 @@ export default function EventsClient({ events }: { events: Event[] }) {
                   }`}>
                     {event.is_active ? 'Active' : 'Inactive'}
                   </span>
+                  {editing?.id === event.id && (
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-100 text-brand-700">
+                      Editing
+                    </span>
+                  )}
                 </div>
                 {event.description && <p className="text-sm text-gray-500 mb-1">{event.description}</p>}
                 {event.start_date && (
@@ -334,23 +344,33 @@ export default function EventsClient({ events }: { events: Event[] }) {
                 </div>
                 <p className="text-xs text-gray-400 mt-2">hhstagdays.com/events/{event.slug}</p>
               </div>
+              {/* The card of the event the form above is holding carries no actions.
+                  Delete used to sit here, a long scroll below the editor, with nothing
+                  saying the two were one event — so renaming in the form made a single
+                  event read as two and the lower one looked like a duplicate to clear. */}
               <div className="flex gap-2 shrink-0">
-                <button onClick={() => handleToggleActive(event)}
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                  {event.is_active ? 'Deactivate' : 'Activate'}
-                </button>
-                <button onClick={() => handleEdit(event)}
-                  className="text-sm text-gray-600 hover:text-gray-800 font-medium">
-                  Edit
-                </button>
-                <button onClick={() => handleArchive(event)}
-                  className="text-sm text-orange-600 hover:text-orange-800 font-medium">
-                  Archive
-                </button>
-                <button onClick={() => handleDelete(event.id)}
-                  className="text-sm text-brand-600 hover:text-brand-800 font-medium">
-                  Delete
-                </button>
+                {editing?.id === event.id ? (
+                  <span className="text-sm text-brand-700 font-medium">Editing above</span>
+                ) : (
+                  <>
+                    <button onClick={() => handleToggleActive(event)}
+                      className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                      {event.is_active ? 'Deactivate' : 'Activate'}
+                    </button>
+                    <button onClick={() => handleEdit(event)}
+                      className="text-sm text-gray-600 hover:text-gray-800 font-medium">
+                      Edit
+                    </button>
+                    <button onClick={() => handleArchive(event)}
+                      className="text-sm text-orange-600 hover:text-orange-800 font-medium">
+                      Archive
+                    </button>
+                    <button onClick={() => handleDelete(event.id)}
+                      className="text-sm text-brand-600 hover:text-brand-800 font-medium">
+                      Delete
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -386,14 +406,20 @@ export default function EventsClient({ events }: { events: Event[] }) {
                       )}
                     </div>
                     <div className="flex gap-2 shrink-0">
-                      <button onClick={() => handleRestore(event)}
-                        className="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                        Restore
-                      </button>
-                      <button onClick={() => handleDelete(event.id)}
-                        className="text-sm text-brand-600 hover:text-brand-800 font-medium">
-                        Delete Permanently
-                      </button>
+                      {editing?.id === event.id ? (
+                        <span className="text-sm text-brand-700 font-medium">Editing above</span>
+                      ) : (
+                        <>
+                          <button onClick={() => handleRestore(event)}
+                            className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                            Restore
+                          </button>
+                          <button onClick={() => handleDelete(event.id)}
+                            className="text-sm text-brand-600 hover:text-brand-800 font-medium">
+                            Delete Permanently
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

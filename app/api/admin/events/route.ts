@@ -52,6 +52,12 @@ export async function PUT(request: Request) {
     .select()
     .single()
 
+  // PGRST116 is .single() finding no row: the event was deleted while this form was
+  // open. Postgres words it "Cannot coerce the result to a single JSON object", which
+  // tells whoever is looking at the screen nothing about what happened.
+  if (error?.code === 'PGRST116') {
+    return NextResponse.json({ error: 'This event no longer exists — it may have been deleted.' }, { status: 404 })
+  }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   if (roles) {
