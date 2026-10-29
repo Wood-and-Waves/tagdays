@@ -17,9 +17,9 @@ export const SHIFT_STEP_MINUTES = 15
 /** What a shift is when nobody says otherwise — the old hardcoded 2 hours. */
 export const DEFAULT_SHIFT_MINUTES = 120
 
-/** The earliest and latest times the pickers offer. */
+/** The earliest and latest HOURS the pickers offer. */
 export const DAY_START_HOUR = 6
-export const DAY_END_HOUR = 20
+export const DAY_END_HOUR = 21
 
 export type SlotTime = { start: string; end: string }
 
@@ -81,17 +81,32 @@ export function generateSlotTimes(
   return slots
 }
 
-/** Every time on the grid between DAY_START_HOUR and DAY_END_HOUR, for the pickers. */
-export function timeOptions(
+/**
+ * The pickers ask for an hour and a quarter separately.
+ *
+ * One list of every quarter hour across the day is sixty-odd entries, which is
+ * a full screen of scrolling to reach the afternoon. An hour and a :15 are two
+ * short choices instead of one long one.
+ */
+export function hourOptions(
   startHour: number = DAY_START_HOUR,
   endHour: number = DAY_END_HOUR,
-  stepMinutes: number = SHIFT_STEP_MINUTES,
-): string[] {
-  const options: string[] = []
-  for (let minutes = startHour * 60; minutes <= endHour * 60; minutes += stepMinutes) {
-    options.push(fromMinutes(minutes))
-  }
-  return options
+): number[] {
+  const hours: number[] = []
+  for (let hour = startHour; hour <= endHour; hour++) hours.push(hour)
+  return hours
+}
+
+/** The minutes past the hour a shift may start on — :00 :15 :30 :45. */
+export function minuteOptions(stepMinutes: number = SHIFT_STEP_MINUTES): number[] {
+  const minutes: number[] = []
+  for (let minute = 0; minute < 60; minute += stepMinutes) minutes.push(minute)
+  return minutes
+}
+
+/** 6 → "6 AM", 12 → "12 PM", 21 → "9 PM". */
+export function formatHour(hour: number): string {
+  return `${hour % 12 || 12} ${hour >= 12 ? 'PM' : 'AM'}`
 }
 
 /** "45 min", "1 hr", "1 hr 30 min" — for the shift-length picker. */

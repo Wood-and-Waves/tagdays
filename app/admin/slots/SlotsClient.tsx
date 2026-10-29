@@ -6,20 +6,112 @@ import { Location, SlotWithSignups, EventRole } from '@/lib/types'
 import { getEffectiveCapacity } from '@/lib/capacity'
 import {
   generateSlotTimes,
-  timeOptions,
+  hourOptions,
+  minuteOptions,
+  formatHour,
   formatDuration,
+  toMinutes,
+  fromMinutes,
   DEFAULT_SHIFT_MINUTES,
   SHIFT_LENGTH_OPTIONS,
 } from '@/lib/slotTimes'
 
-// Every quarter hour, so a shift can start at 11:15 rather than only on the hour.
-const TIME_OPTIONS = timeOptions()
+const HOUR_OPTIONS = hourOptions()
+const MINUTE_OPTIONS = minuteOptions()
 
 const formatTime = (t: string) => {
   const [h, m] = t.split(':').map(Number)
   const ampm = h >= 12 ? 'PM' : 'AM'
   const hour = h % 12 || 12
   return `${hour}:${String(m).padStart(2, '0')} ${ampm}`
+}
+
+/**
+ * An hour, then the quarter — rather than one dropdown of every quarter hour
+ * in the day, which was sixty-odd entries and a screenful of scrolling to
+ * reach the afternoon.
+ */
+function TimeField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+}) {
+  // The quarter chosen before an hour is. There is no time to hand upward
+  // until an hour exists, so it waits here rather than in the form.
+  const [pendingMinute, setPendingMinute] = useState(0)
+
+  const parsed = toMinutes(value)
+  const hour = parsed === null ? '' : String(Math.floor(parsed / 60))
+  const minute = parsed === null ? pendingMinute : parsed % 60
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        {label} <span className="text-brand-600">*</span>
+      </label>
+      <div className="flex flex-wrap gap-2">
+        <select
+          required
+          value={hour}
+          onChange={e => onChange(e.target.value === '' ? '' : fromMinutes(Number(e.target.value) * 60 + minute))}
+          className="flex-1 min-w-[6.5rem] border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+        >
+          <option value="">Hour</option>
+          {HOUR_OPTIONS.map(h => <option key={h} value={h}>{formatHour(h)}</option>)}
+        </select>
+        <div className="flex gap-1 flex-1 min-w-[10rem]">
+          {MINUTE_OPTIONS.map(m => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => {
+                setPendingMinute(m)
+                if (hour !== '') onChange(fromMinutes(Number(hour) * 60 + m))
+              }}
+              className={`flex-1 rounded-lg py-2 text-sm font-semibold transition border ${
+                m === minute
+                  ? 'bg-gray-700 border-gray-700 text-white'
+                  : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              :{String(m).padStart(2, '0')}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function CapacityFields({
+  roles,
+  capacities,
+  onChange,
+}: {
+  roles: EventRole[]
+  capacities: Record<string, number>
+  onChange: (roleId: string, value: number) => void
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {roles.map(role => (
+        <div key={role.id}>
+          <label className="block text-xs text-gray-500 mb-1">{role.name}</label>
+          <input
+            type="number"
+            min={0}
+            value={capacities[role.id] ?? role.max_per_slot}
+            onChange={e => onChange(role.id, parseInt(e.target.value) || 0)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+          />
+        </div>
+      ))}
+    </div>
+  )
 }
 
 const getCapacityPayload = (roles: EventRole[], capacities: Record<string, number>) => {
@@ -54,9 +146,12 @@ export default function SlotsClient({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Opens on the event's first day, not on an empty field the browser fills
+  // with today — today is almost never a day this event runs, and with the
+  // event's own min/max on the input it is not even a legal choice.
   const [single, setSingle] = useState({
     location_id: '',
-    date: '',
+    date: eventStartDate || '',
     start_time: '',
     end_time: '',
   })
@@ -65,7 +160,7 @@ export default function SlotsClient({
 
   const [bulk, setBulk] = useState({
     location_id: '',
-    date: '',
+    date: eventStartDate || '',
     start_time: '',
     end_time: '',
     shift_minutes: DEFAULT_SHIFT_MINUTES,
@@ -195,28 +290,12 @@ export default function SlotsClient({
   // the loop that rounded end times to the hour.
   const preview = generateSlotTimes(bulk.start_time, bulk.end_time, bulk.shift_minutes)
 
-  const CapacityFields = ({
-    capacities,
-    onChange,
-  }: {
-    capacities: Record<string, number>
-    onChange: (roleId: string, value: number) => void
-  }) => (
-    <div className="grid grid-cols-2 gap-3">
-      {roles.map(role => (
-        <div key={role.id}>
-          <label className="block text-xs text-gray-500 mb-1">{role.name}</label>
-          <input
-            type="number"
-            min={0}
-            value={capacities[role.id] ?? role.max_per_slot}
-            onChange={e => onChange(role.id, parseInt(e.target.value) || 0)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-          />
-        </div>
-      ))}
-    </div>
-  )
+  // The API refuses a shift that ends before it starts; catching it here saves
+  // the round trip now that both ends are picked freely rather than from lists
+  // that could not overlap.
+  const singleStart = toMinutes(single.start_time)
+  const singleEnd = toMinutes(single.end_time)
+  const singleTimesOk = singleStart !== null && singleEnd !== null && singleEnd > singleStart
 
   return (
     <div>
@@ -247,7 +326,7 @@ export default function SlotsClient({
             <div className="bg-brand-50 border border-brand-200 text-brand-700 rounded-lg p-3 mb-4 text-sm">{error}</div>
           )}
           <form onSubmit={handleBulkSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Location <span className="text-brand-600">*</span></label>
                 <select required value={bulk.location_id} onChange={e => setBulk({ ...bulk, location_id: e.target.value })}
@@ -262,22 +341,16 @@ export default function SlotsClient({
                   min={eventStartDate || undefined} max={eventEndDate || undefined}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Start Time <span className="text-brand-600">*</span></label>
-                <select required value={bulk.start_time} onChange={e => setBulk({ ...bulk, start_time: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                  <option value="">Select start time</option>
-                  {TIME_OPTIONS.slice(0, -1).map(t => <option key={t} value={t}>{formatTime(t)}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">End Time <span className="text-brand-600">*</span></label>
-                <select required value={bulk.end_time} onChange={e => setBulk({ ...bulk, end_time: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                  <option value="">Select end time</option>
-                  {TIME_OPTIONS.slice(1).map(t => <option key={t} value={t}>{formatTime(t)}</option>)}
-                </select>
-              </div>
+              <TimeField
+                label="Start Time"
+                value={bulk.start_time}
+                onChange={v => setBulk({ ...bulk, start_time: v })}
+              />
+              <TimeField
+                label="End Time"
+                value={bulk.end_time}
+                onChange={v => setBulk({ ...bulk, end_time: v })}
+              />
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Each Shift Is <span className="text-brand-600">*</span></label>
                 <select required value={bulk.shift_minutes}
@@ -313,6 +386,7 @@ export default function SlotsClient({
                 <div className="mt-3">
                   <p className="text-xs text-gray-400 mb-2">Applies to every slot generated by this batch. Leave as default to use the event's normal capacity.</p>
                   <CapacityFields
+                    roles={roles}
                     capacities={bulkCapacities}
                     onChange={(roleId, value) => setBulkCapacities({ ...bulkCapacities, [roleId]: value })}
                   />
@@ -341,7 +415,7 @@ export default function SlotsClient({
             <div className="bg-brand-50 border border-brand-200 text-brand-700 rounded-lg p-3 mb-4 text-sm">{error}</div>
           )}
           <form onSubmit={handleSingleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Location <span className="text-brand-600">*</span></label>
                 <select required value={single.location_id} onChange={e => setSingle({ ...single, location_id: e.target.value })}
@@ -356,22 +430,16 @@ export default function SlotsClient({
                   min={eventStartDate || undefined} max={eventEndDate || undefined}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Start Time <span className="text-brand-600">*</span></label>
-                <select required value={single.start_time} onChange={e => setSingle({ ...single, start_time: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                  <option value="">Select start time</option>
-                  {TIME_OPTIONS.slice(0, -1).map(t => <option key={t} value={t}>{formatTime(t)}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">End Time <span className="text-brand-600">*</span></label>
-                <select required value={single.end_time} onChange={e => setSingle({ ...single, end_time: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                  <option value="">Select end time</option>
-                  {TIME_OPTIONS.slice(1).map(t => <option key={t} value={t}>{formatTime(t)}</option>)}
-                </select>
-              </div>
+              <TimeField
+                label="Start Time"
+                value={single.start_time}
+                onChange={v => setSingle({ ...single, start_time: v })}
+              />
+              <TimeField
+                label="End Time"
+                value={single.end_time}
+                onChange={v => setSingle({ ...single, end_time: v })}
+              />
             </div>
 
             <div className="border-t border-gray-200 pt-4">
@@ -386,6 +454,7 @@ export default function SlotsClient({
                 <div className="mt-3">
                   <p className="text-xs text-gray-400 mb-2">Leave as default to use the event's normal capacity.</p>
                   <CapacityFields
+                    roles={roles}
                     capacities={singleCapacities}
                     onChange={(roleId, value) => setSingleCapacities({ ...singleCapacities, [roleId]: value })}
                   />
@@ -394,7 +463,7 @@ export default function SlotsClient({
             </div>
 
             <div className="flex gap-3">
-              <button type="submit" disabled={loading}
+              <button type="submit" disabled={loading || !singleTimesOk}
                 className="bg-brand-700 text-white px-4 py-2 rounded-lg hover:bg-brand-800 transition text-sm font-semibold disabled:opacity-50">
                 {loading ? 'Saving...' : 'Add Slot'}
               </button>
@@ -440,6 +509,7 @@ export default function SlotsClient({
                     {isEditing ? (
                       <div className="w-56">
                         <CapacityFields
+                          roles={roles}
                           capacities={editCapacities}
                           onChange={(roleId, value) => setEditCapacities({ ...editCapacities, [roleId]: value })}
                         />

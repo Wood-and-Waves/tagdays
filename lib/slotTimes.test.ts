@@ -4,7 +4,9 @@ import {
   fromMinutes,
   normalizeTime,
   generateSlotTimes,
-  timeOptions,
+  hourOptions,
+  minuteOptions,
+  formatHour,
   formatDuration,
   DEFAULT_SHIFT_MINUTES,
 } from './slotTimes'
@@ -115,19 +117,32 @@ describe('generateSlotTimes', () => {
   })
 })
 
-describe('timeOptions', () => {
-  it('offers every quarter hour across the day', () => {
-    const options = timeOptions()
-    expect(options[0]).toBe('06:00')
-    expect(options[options.length - 1]).toBe('20:00')
-    expect(options).toHaveLength((20 - 6) * 4 + 1)
-    expect(options).toContain('11:15')
-    expect(options).toContain('11:30')
-    expect(options).toContain('11:45')
+describe('hourOptions', () => {
+  it('runs from the start of the day to the end', () => {
+    const hours = hourOptions()
+    expect(hours[0]).toBe(6)
+    expect(hours[hours.length - 1]).toBe(21)
+    expect(hours).toHaveLength(16)
+  })
+})
+
+describe('minuteOptions', () => {
+  it('offers each quarter of the hour', () => {
+    expect(minuteOptions()).toEqual([0, 15, 30, 45])
   })
 
-  it('still steps by the hour when asked to', () => {
-    expect(timeOptions(6, 20, 60)).toHaveLength(15)
+  it('follows the step it is given', () => {
+    expect(minuteOptions(30)).toEqual([0, 30])
+  })
+})
+
+describe('formatHour', () => {
+  it('reads the way somebody would say it', () => {
+    expect(formatHour(6)).toBe('6 AM')
+    expect(formatHour(11)).toBe('11 AM')
+    expect(formatHour(12)).toBe('12 PM')
+    expect(formatHour(13)).toBe('1 PM')
+    expect(formatHour(21)).toBe('9 PM')
   })
 })
 
