@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { EMAIL_FROM, EMAIL_REPLY_TO } from './sender'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -19,7 +20,8 @@ export async function sendAdminInviteEmail({
   actionLink: string
 }) {
   const { error } = await resend.emails.send({
-    from: 'HHS Band Boosters <noreply@hhstagdays.com>',
+    from: EMAIL_FROM,
+    replyTo: EMAIL_REPLY_TO,
     to,
     subject: "You've been added as an admin — HHS Band Boosters",
     html: `
