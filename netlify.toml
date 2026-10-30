@@ -1,3 +1,22 @@
+# The old address keeps working, it just doesn't stay.
+# signup.huntleybands.com is the one canonical home, so anything printed
+# earlier on a flyer or a QR code still lands in the right place rather
+# than quietly running a second copy of the site at another name.
+# force = true because without it Netlify serves a matching page instead
+# of redirecting. :splat carries the rest of the path through.
+
+[[redirects]]
+  from = "https://hhstagdays.com/*"
+  to = "https://signup.huntleybands.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://www.hhstagdays.com/*"
+  to = "https://signup.huntleybands.com/:splat"
+  status = 301
+  force = true
+
 [build]
   command = "npm run build"
   publish = ".next"
