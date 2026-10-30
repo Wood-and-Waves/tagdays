@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import SiteHeader from '@/app/components/SiteHeader'
 import SiteFooter from '@/app/components/SiteFooter'
+import { SITE_URL, SITE_HOST } from '@/lib/siteUrl'
 
 export default function SMSOptInPage() {
   return (
@@ -24,7 +25,7 @@ export default function SMSOptInPage() {
           </p>
           <div className="mt-4 bg-gray-50 rounded-lg p-4 text-sm text-gray-600 space-y-1">
             <p><strong>Organization:</strong> Huntley High School Band Boosters</p>
-            <p><strong>Website:</strong> https://hhstagdays.com</p>
+            <p><strong>Website:</strong> {SITE_URL}</p>
             <p><strong>Contact:</strong> fundraising@huntleybands.com</p>
             <p><strong>Message types:</strong> Confirmation (1 message) + Reminders (up to 2 messages per signup)</p>
             <p><strong>Message frequency:</strong> Up to 3 messages per volunteer signup</p>
@@ -39,7 +40,7 @@ export default function SMSOptInPage() {
             <div className="flex gap-4">
               <div className="shrink-0 w-8 h-8 bg-brand-700 text-white rounded-full flex items-center justify-center font-bold text-sm">1</div>
               <div>
-                <p className="font-semibold text-gray-900">Volunteer visits hhstagdays.com</p>
+                <p className="font-semibold text-gray-900">Volunteer visits {SITE_HOST}</p>
                 <p className="text-gray-600 text-sm mt-1">The public schedule page shows all available volunteer shifts organized by time or location.</p>
               </div>
             </div>

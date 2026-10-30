@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { SITE_HOST } from '@/lib/siteUrl'
 
 type Role = {
   id: string
@@ -197,7 +198,7 @@ export default function EventsClient({ events }: { events: Event[] }) {
                   onChange={e => setForm({ ...form, slug: e.target.value })}
                   placeholder="tag-days-2026"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-                <p className="text-xs text-gray-400 mt-1">hhstagdays.com/events/{form.slug || 'slug'}</p>
+                <p className="text-xs text-gray-400 mt-1">{SITE_HOST}/events/{form.slug || 'slug'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
@@ -342,7 +343,7 @@ export default function EventsClient({ events }: { events: Event[] }) {
                     </span>
                   ))}
                 </div>
-                <p className="text-xs text-gray-400 mt-2">hhstagdays.com/events/{event.slug}</p>
+                <p className="text-xs text-gray-400 mt-2">{SITE_HOST}/events/{event.slug}</p>
               </div>
               {/* The card of the event the form above is holding carries no actions.
                   Delete used to sit here, a long scroll below the editor, with nothing

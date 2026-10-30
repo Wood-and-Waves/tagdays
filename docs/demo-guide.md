@@ -7,8 +7,8 @@ Runs about **15 minutes**, or 25 with questions.
 
 ## Before you start
 
-- [ ] Sign in to **hhstagdays.com/login** on one tab (leave it on the Dashboard)
-- [ ] Open **hhstagdays.com** in a second tab (the public site)
+- [ ] Sign in to **signup.huntleybands.com/login** on one tab (leave it on the Dashboard)
+- [ ] Open **signup.huntleybands.com** in a second tab (the public site)
 - [ ] Have your **phone out and unlocked** — you'll receive a real text during the demo
 - [ ] Reset the data to a clean state:
 
@@ -32,7 +32,7 @@ npm run db:sql -- scripts/sql/demo-reset.sql
 
 > "Let me show you what a band parent sees when they get the sign-up link."
 
-### 1. The front page — hhstagdays.com
+### 1. The front page — signup.huntleybands.com
 Three fundraisers, each its own card. **Point out:** one place for every event, not a different sign-up sheet each time.
 
 ### 2. Open **Tag Days 2026**
