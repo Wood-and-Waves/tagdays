@@ -19,6 +19,13 @@ export async function POST(request: Request) {
     .select()
     .single()
 
+  // 23505 on events_slug_key: two events cannot share a URL. Postgres words it
+  // "duplicate key value violates unique constraint", which names the index and
+  // not the field somebody has to change. Copying an event twice lands here, so
+  // it is an ordinary thing to hit rather than a corner.
+  if (error?.code === '23505') {
+    return NextResponse.json({ error: 'Another event already uses that URL slug. Change the slug and try again.' }, { status: 400 })
+  }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   if (roles && roles.length > 0) {
@@ -57,6 +64,9 @@ export async function PUT(request: Request) {
   // tells whoever is looking at the screen nothing about what happened.
   if (error?.code === 'PGRST116') {
     return NextResponse.json({ error: 'This event no longer exists — it may have been deleted.' }, { status: 404 })
+  }
+  if (error?.code === '23505') {
+    return NextResponse.json({ error: 'Another event already uses that URL slug. Change the slug and try again.' }, { status: 400 })
   }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 

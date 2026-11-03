@@ -78,6 +78,37 @@ export default function EventsClient({ events }: { events: Event[] }) {
     setShowForm(true)
   }
 
+  // Copying fills the create form instead of writing a second event straight
+  // away. The roles, the FAQ and the reminder notes are what get retyped every
+  // time and they come across whole; the NAME and the DATES are the two things
+  // that change for every copy, so the screen that already knows how to ask for
+  // them is the right place to finish the job. Slots are not copied — they hang
+  // off dates that do not exist yet, and Bulk Generate makes a day of them in
+  // one press.
+  const handleCopy = (event: Event) => {
+    // Nothing is `editing`, so Save POSTs a new event rather than overwriting
+    // the one being copied.
+    setEditing(null)
+    setForm({
+      name: `${event.name} (Copy)`,
+      slug: `${event.slug}-copy`,
+      description: event.description || '',
+      start_date: '',
+      end_date: '',
+      is_active: false,
+      reminder_notes: event.reminder_notes || '',
+      faq_content: event.faq_content || '',
+    })
+    setRoles(event.event_roles.length > 0
+      ? event.event_roles.map(r => ({ name: r.name, max_per_slot: r.max_per_slot }))
+      : [{ name: '', max_per_slot: 1 }]
+    )
+    setError(null)
+    setShowForm(true)
+    // The form is at the top of a list that can be a long way down.
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   const handleNameChange = (name: string) => {
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
     setForm({ ...form, name, slug })
@@ -362,6 +393,10 @@ export default function EventsClient({ events }: { events: Event[] }) {
                       className="text-sm text-gray-600 hover:text-gray-800 font-medium">
                       Edit
                     </button>
+                    <button onClick={() => handleCopy(event)}
+                      className="text-sm text-gray-600 hover:text-gray-800 font-medium">
+                      Copy
+                    </button>
                     <button onClick={() => handleArchive(event)}
                       className="text-sm text-orange-600 hover:text-orange-800 font-medium">
                       Archive
@@ -414,6 +449,10 @@ export default function EventsClient({ events }: { events: Event[] }) {
                           <button onClick={() => handleRestore(event)}
                             className="text-sm text-blue-600 hover:text-blue-800 font-medium">
                             Restore
+                          </button>
+                          <button onClick={() => handleCopy(event)}
+                            className="text-sm text-gray-600 hover:text-gray-800 font-medium">
+                            Copy
                           </button>
                           <button onClick={() => handleDelete(event.id)}
                             className="text-sm text-brand-600 hover:text-brand-800 font-medium">
