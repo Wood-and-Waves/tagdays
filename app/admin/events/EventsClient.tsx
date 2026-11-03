@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { SITE_HOST } from '@/lib/siteUrl'
+import { renameForDate } from '@/lib/eventCopy'
 
 type Role = {
   id: string
@@ -78,36 +79,94 @@ export default function EventsClient({ events }: { events: Event[] }) {
     setShowForm(true)
   }
 
-  // Copying fills the create form instead of writing a second event straight
-  // away. The roles, the FAQ and the reminder notes are what get retyped every
-  // time and they come across whole; the NAME and the DATES are the two things
-  // that change for every copy, so the screen that already knows how to ask for
-  // them is the right place to finish the job. Slots are not copied — they hang
-  // off dates that do not exist yet, and Bulk Generate makes a day of them in
-  // one press.
-  const handleCopy = (event: Event) => {
-    // Nothing is `editing`, so Save POSTs a new event rather than overwriting
-    // the one being copied.
-    setEditing(null)
-    setForm({
-      name: `${event.name} (Copy)`,
-      slug: `${event.slug}-copy`,
-      description: event.description || '',
-      start_date: '',
-      end_date: '',
-      is_active: false,
-      reminder_notes: event.reminder_notes || '',
-      faq_content: event.faq_content || '',
-    })
-    setRoles(event.event_roles.length > 0
-      ? event.event_roles.map(r => ({ name: r.name, max_per_slot: r.max_per_slot }))
-      : [{ name: '', max_per_slot: 1 }]
-    )
-    setError(null)
-    setShowForm(true)
-    // The form is at the top of a list that can be a long way down.
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+  // Copying an event means moving it to a new date: in this app an event IS a
+  // date, so "another one like this" is never the ask. The date is the one
+  // thing typed; the name follows it, and the server shifts the event's own
+  // dates and every shift by the same offset.
+  //
+  // Filling the create form was the first cut and it did not work: it carried
+  // the roles and left the name, the dates and every shift to be rebuilt by
+  // hand — which is most of the job.
+  const [copying, setCopying] = useState<Event | null>(null)
+  const [copyDate, setCopyDate] = useState('')
+  const [copyName, setCopyName] = useState('')
+  const [copyNameEdited, setCopyNameEdited] = useState(false)
+  const [copyLoading, setCopyLoading] = useState(false)
+  const [copyError, setCopyError] = useState<string | null>(null)
+
+  const openCopy = (event: Event) => {
+    setCopying(event)
+    setCopyDate('')
+    setCopyName(event.name)
+    setCopyNameEdited(false)
+    setCopyError(null)
   }
+
+  const handleCopyDate = (date: string) => {
+    setCopyDate(date)
+    // The name follows the date until somebody types their own, at which point
+    // it stops moving under them.
+    if (!copyNameEdited && copying) setCopyName(renameForDate(copying.name, date))
+  }
+
+  const submitCopy = async () => {
+    if (!copying || !copyDate) return
+    setCopyLoading(true)
+    setCopyError(null)
+
+    const res = await fetch('/api/admin/events/copy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: copying.id, new_start_date: copyDate, name: copyName }),
+    })
+    const data = await res.json()
+    setCopyLoading(false)
+
+    if (!res.ok) {
+      setCopyError(data.error || 'The copy could not be created.')
+      return
+    }
+
+    setCopying(null)
+    router.refresh()
+  }
+
+  const copyPanel = (event: Event) => copying?.id !== event.id ? null : (
+    <div className="mt-4 pt-4 border-t border-gray-200">
+      <h3 className="font-semibold text-sm text-gray-900 mb-3">Copy to a new date</h3>
+
+      {copyError && (
+        <div className="bg-brand-50 border border-brand-200 text-brand-700 rounded-lg p-3 mb-3 text-sm">{copyError}</div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            New date <span className="text-brand-600">*</span>
+          </label>
+          <input type="date" value={copyDate} onChange={e => handleCopyDate(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+          <input type="text" value={copyName}
+            onChange={e => { setCopyName(e.target.value); setCopyNameEdited(true) }}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+        </div>
+      </div>
+
+      <div className="flex gap-2 mt-3">
+        <button onClick={submitCopy} disabled={!copyDate || copyLoading}
+          className="bg-brand-700 text-white px-4 py-2 rounded-lg hover:bg-brand-800 transition font-semibold text-sm disabled:opacity-50">
+          {copyLoading ? 'Copying...' : 'Copy event'}
+        </button>
+        <button onClick={() => setCopying(null)}
+          className="text-sm text-gray-600 hover:text-gray-800 font-medium px-2">
+          Cancel
+        </button>
+      </div>
+    </div>
+  )
 
   const handleNameChange = (name: string) => {
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
@@ -393,7 +452,7 @@ export default function EventsClient({ events }: { events: Event[] }) {
                       className="text-sm text-gray-600 hover:text-gray-800 font-medium">
                       Edit
                     </button>
-                    <button onClick={() => handleCopy(event)}
+                    <button onClick={() => openCopy(event)}
                       className="text-sm text-gray-600 hover:text-gray-800 font-medium">
                       Copy
                     </button>
@@ -409,6 +468,8 @@ export default function EventsClient({ events }: { events: Event[] }) {
                 )}
               </div>
             </div>
+
+            {copyPanel(event)}
           </div>
         ))}
       </div>
@@ -450,7 +511,7 @@ export default function EventsClient({ events }: { events: Event[] }) {
                             className="text-sm text-blue-600 hover:text-blue-800 font-medium">
                             Restore
                           </button>
-                          <button onClick={() => handleCopy(event)}
+                          <button onClick={() => openCopy(event)}
                             className="text-sm text-gray-600 hover:text-gray-800 font-medium">
                             Copy
                           </button>
@@ -462,6 +523,8 @@ export default function EventsClient({ events }: { events: Event[] }) {
                       )}
                     </div>
                   </div>
+
+                  {copyPanel(event)}
                 </div>
               ))}
             </div>
