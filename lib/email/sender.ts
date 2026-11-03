@@ -10,8 +10,16 @@
  * day huntleybands.com verifies, this becomes one environment variable and no
  * deploy. Until it is set, we keep sending from the address that works:
  * mail from an unverified domain is not "slightly worse", it is rejected.
+ *
+ * THE NAME DOES NOT HAVE TO WAIT FOR THE ADDRESS. DNS governs the address and
+ * nothing else; the name in front of it is a label in the header, free to say
+ * anything. So the name is already the one we want and the address is the one
+ * that currently works — which is what an inbox list shows anyway, since it
+ * prints the name and hides the address. Replies reach the right mailbox
+ * through EMAIL_REPLY_TO below, so the old domain is left doing the one job
+ * DNS actually ties it to.
  */
-export const EMAIL_FROM = process.env.EMAIL_FROM || 'HHS Band Boosters <noreply@hhstagdays.com>'
+export const EMAIL_FROM = process.env.EMAIL_FROM || 'Huntley Bands Fundraising <noreply@hhstagdays.com>'
 
 /**
  * Where a reply goes. Deliberately NOT the sending address: a volunteer who
