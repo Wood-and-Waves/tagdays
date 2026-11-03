@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import SiteHeader from '@/app/components/SiteHeader'
 import SiteFooter from '@/app/components/SiteFooter'
 import EventClient from './EventClient'
+import EventFAQ from './EventFAQ'
 
 export const metadata = {
   robots: { index: false, follow: false },
@@ -62,7 +63,10 @@ export default async function EventPage({
         subtitle={formatDateRange(event.start_date, event.end_date) || undefined}
         backHref="/"
         backLabel="All Events"
-        rightLinkHref={event.faq_content ? `/events/${slug}/faq` : undefined}
+        // The FAQ is on this page now, so the header link jumps to it rather
+        // than loading a second page. /events/[slug]/faq still works for
+        // anything already pointing at it.
+        rightLinkHref={event.faq_content ? '#faq' : undefined}
         rightLinkLabel={event.faq_content ? 'FAQ' : undefined}
       />
 
@@ -75,6 +79,8 @@ export default async function EventPage({
           roles={roles || []}
           eventSlug={slug}
         />
+
+        <EventFAQ content={event.faq_content} />
       </div>
 
       <SiteFooter />
