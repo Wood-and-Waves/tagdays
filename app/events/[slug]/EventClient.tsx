@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { SlotWithSignups, EventRole } from '@/lib/types'
 import { getEffectiveCapacity } from '@/lib/capacity'
+import { viewControls } from '@/lib/viewControls'
 
 const formatTime = (t: string) => {
   const [h, m] = t.slice(0, 5).split(':').map(Number)
@@ -30,6 +31,9 @@ export default function EventClient({
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
   const uniqueDates = [...new Set(slots.map(s => s.date))].sort()
+
+  // Which controls are worth showing — see lib/viewControls.ts.
+  const { showSort, showDays } = viewControls(slots)
 
   const filteredSlots = selectedDate
     ? slots.filter(s => s.date === selectedDate)
@@ -145,7 +149,9 @@ export default function EventClient({
 
   return (
     <div>
+      {(showSort || showDays) && (
       <div className="flex flex-wrap gap-2 mb-6">
+        {showSort && (<>
         <button
           onClick={() => setSortBy('time')}
           className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
@@ -166,7 +172,11 @@ export default function EventClient({
         >
           By Location
         </button>
-        <div className="w-px bg-gray-300 mx-1"></div>
+        </>)}
+
+        {showSort && showDays && <div className="w-px bg-gray-300 mx-1"></div>}
+
+        {showDays && (<>
         <button
           onClick={() => setSelectedDate(null)}
           className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
@@ -190,7 +200,9 @@ export default function EventClient({
             {formatDate(date)}
           </button>
         ))}
+        </>)}
       </div>
+      )}
 
       {visibleSlots.length === 0 && (
         <p className="text-center text-gray-400 py-12">No open slots for this day.</p>
