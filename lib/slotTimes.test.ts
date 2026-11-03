@@ -87,14 +87,39 @@ describe('generateSlotTimes', () => {
     }
   })
 
-  // A tail too short for a whole shift is dropped rather than created short.
-  // That is what the old loop did, so a schedule built before this change and
-  // one built after look the same.
-  it('drops a tail that will not fit a whole shift', () => {
+  // The whole range gets covered: a tail too short for a full shift is made
+  // short rather than dropped, because the hours somebody typed are the hours
+  // the stand needs somebody standing in it.
+  it('shortens the last shift to reach the end time', () => {
     expect(generateSlotTimes('09:00', '14:00')).toEqual([
       { start: '09:00', end: '11:00' },
       { start: '11:00', end: '13:00' },
+      { start: '13:00', end: '14:00' },
     ])
+  })
+
+  // Dan's case, in his numbers: ten to six in three-hour shifts.
+  it('ends a three-hour run of 10-6 with a two-hour shift', () => {
+    expect(generateSlotTimes('10:00', '18:00', 180)).toEqual([
+      { start: '10:00', end: '13:00' },
+      { start: '13:00', end: '16:00' },
+      { start: '16:00', end: '18:00' },
+    ])
+  })
+
+  it('still ends exactly on time when the shifts divide evenly', () => {
+    const slots = generateSlotTimes('10:00', '18:00', 120)
+    expect(slots).toHaveLength(4)
+    expect(slots[slots.length - 1].end).toBe('18:00')
+  })
+
+  it('always finishes on the end time, whatever the shift length', () => {
+    for (const minutes of [15, 45, 50, 90, 150, 180, 240]) {
+      const slots = generateSlotTimes('10:00', '18:00', minutes)
+      expect(slots.length).toBeGreaterThan(0)
+      expect(slots[0].start).toBe('10:00')
+      expect(slots[slots.length - 1].end).toBe('18:00')
+    }
   })
 
   // This is the bug the string comparison caused: "8:00" < "18:00" is false,
@@ -112,8 +137,12 @@ describe('generateSlotTimes', () => {
     expect(generateSlotTimes('09:00', null)).toEqual([])
   })
 
-  it('does not invent a shift that cannot fit', () => {
-    expect(generateSlotTimes('09:00', '10:00', 120)).toEqual([])
+  // A shift longer than the range is not nothing — it is the range. Asking for
+  // three-hour shifts across one hour means that hour wants covering.
+  it('gives the whole range when one shift would overrun it', () => {
+    expect(generateSlotTimes('09:00', '10:00', 120)).toEqual([
+      { start: '09:00', end: '10:00' },
+    ])
   })
 })
 

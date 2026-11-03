@@ -58,9 +58,14 @@ export function normalizeTime(value: string | null | undefined): string | null {
  * Back-to-back shifts of `shiftMinutes` filling [startTime, endTime].
  *
  * Each shift starts where the last ended, so there is never a gap (nobody at
- * the stand) or an overlap (two crews at once). A tail too short for a whole
- * shift is dropped rather than created short — which is what the old loop did,
- * and what the admin preview showed.
+ * the stand) or an overlap (two crews at once).
+ *
+ * THE LAST SHIFT IS SHORTENED TO REACH THE END TIME rather than dropped. Ten to
+ * six in three-hour shifts is 10-1, 1-4 and then a two-hour 4-6: the hours a
+ * stand needs covering are the hours somebody typed, and silently ending at
+ * four left the last two hours of a game with nobody on them and nothing on
+ * screen saying so. A short shift is a real shift — somebody works it — so it
+ * is better to offer it and let it be dropped by hand than to lose the time.
  */
 export function generateSlotTimes(
   startTime: string | null | undefined,
@@ -75,8 +80,10 @@ export function generateSlotTimes(
   if (end <= start) return []
 
   const slots: SlotTime[] = []
-  for (let cursor = start; cursor + shiftMinutes <= end; cursor += shiftMinutes) {
-    slots.push({ start: fromMinutes(cursor), end: fromMinutes(cursor + shiftMinutes) })
+  for (let cursor = start; cursor < end; cursor += shiftMinutes) {
+    // Math.min is what keeps the tail inside the range: a shift never ends past
+    // the end time, so the final one is simply whatever is left.
+    slots.push({ start: fromMinutes(cursor), end: fromMinutes(Math.min(cursor + shiftMinutes, end)) })
   }
   return slots
 }
