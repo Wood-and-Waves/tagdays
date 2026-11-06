@@ -1,7 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
 import SiteHeader from '@/app/components/SiteHeader'
 import SiteFooter from '@/app/components/SiteFooter'
+import { summarizeOpenings, EventOpenings } from '@/lib/openSpots'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -11,6 +13,34 @@ export default async function Home() {
     .select('*')
     .eq('is_active', true)
     .order('start_date', { ascending: true })
+
+  // How many spots each event still has open.
+  //
+  // Read with the service-role client because `signups` is not anon-readable,
+  // and selecting only `role` and `cancelled` — no name, no email, no phone.
+  // Nothing but the COUNT reaches the browser; the rows are reduced here.
+  //
+  // Two queries for the whole page rather than two per event, so adding a
+  // seventh concession night costs nothing.
+  const openings = new Map<string, EventOpenings>()
+  if (events && events.length > 0) {
+    const ids = events.map(e => e.id)
+    const adminClient = createAdminClient()
+    const [{ data: slots }, { data: roles }] = await Promise.all([
+      adminClient
+        .from('slots')
+        .select('id, event_id, signups(role, cancelled), role_capacities:slot_role_capacities(*)')
+        .in('event_id', ids),
+      adminClient.from('event_roles').select('*').in('event_id', ids),
+    ])
+
+    for (const id of ids) {
+      openings.set(id, summarizeOpenings(
+        (slots || []).filter(s => s.event_id === id),
+        (roles || []).filter(r => r.event_id === id),
+      ))
+    }
+  }
 
   const formatDateRange = (start: string | null, end: string | null) => {
     if (!start) return ''
@@ -43,8 +73,9 @@ export default async function Home() {
                 {event.description && (
                   <p className="text-gray-600 text-sm mt-2">{event.description}</p>
                 )}
-                <div className="mt-4 text-brand-700 text-sm font-semibold">
-                  View Schedule →
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <span className="text-brand-700 text-sm font-semibold">View Schedule →</span>
+                  <SpotsBadge openings={openings.get(event.id)} />
                 </div>
               </Link>
             ))}
@@ -54,5 +85,23 @@ export default async function Home() {
 
       <SiteFooter />
     </main>
+  )
+}
+
+function SpotsBadge({ openings }: { openings?: EventOpenings }) {
+  if (!openings) return null
+
+  // Nothing built yet is worth saying: it tells somebody not to open the page
+  // to find an empty schedule.
+  if (openings.shifts === 0) {
+    return <span className="text-gray-400 text-xs font-semibold">Schedule coming soon</span>
+  }
+  if (openings.open === 0) {
+    return <span className="bg-gray-100 text-gray-500 text-xs font-semibold px-2 py-1 rounded">Full</span>
+  }
+  return (
+    <span className="bg-brand-50 text-brand-700 text-xs font-semibold px-2 py-1 rounded whitespace-nowrap">
+      {openings.open} {openings.open === 1 ? 'spot' : 'spots'} open
+    </span>
   )
 }
