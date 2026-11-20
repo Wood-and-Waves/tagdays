@@ -4,15 +4,26 @@ import Link from 'next/link'
 import SiteHeader from '@/app/components/SiteHeader'
 import SiteFooter from '@/app/components/SiteFooter'
 import { summarizeOpenings, EventOpenings } from '@/lib/openSpots'
+import { todayInEventZone, hasFinished } from '@/lib/eventDates'
 
 export default async function Home() {
   const supabase = await createClient()
 
-  const { data: events } = await supabase
+  const { data: allActive } = await supabase
     .from('events')
     .select('*')
     .eq('is_active', true)
     .order('start_date', { ascending: true })
+
+  // An event drops off this page the DAY AFTER it finishes, so last week's
+  // concession night stops heading the page advertising spots nobody can take.
+  // Filtered here rather than in the query because "today" is the band's own
+  // date, not the server's — see lib/eventDates.ts.
+  //
+  // Only the PUBLIC list. The admin screen still shows everything, and the
+  // event's own page still opens, so a link already sent keeps working.
+  const today = todayInEventZone()
+  const events = (allActive || []).filter(e => !hasFinished(e, today))
 
   // How many spots each event still has open.
   //
