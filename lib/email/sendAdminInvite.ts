@@ -27,7 +27,7 @@ export async function sendAdminInviteEmail({
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background-color: #b91c1c; padding: 24px; text-align: center;">
-          <h1 style="color: white; margin: 0;">Tag Days Admin</h1>
+          <h1 style="color: white; margin: 0;">Volunteer Signup Admin</h1>
           <p style="color: #fca5a5; margin: 8px 0 0;">HHS Band Boosters</p>
         </div>
 
