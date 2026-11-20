@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { summarizeOpenings, SpotSlot } from './openSpots'
-import { EventRole } from './types'
+import { EventRole, SlotRoleCapacity } from './types'
 
 const role = (id: string, name: string, max: number): EventRole =>
   ({ id, event_id: 'e', name, max_per_slot: max, sort_order: 0, created_at: '' } as EventRole)

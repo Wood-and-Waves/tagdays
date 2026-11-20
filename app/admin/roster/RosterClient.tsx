@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { RosterStudent } from '@/lib/types'
+import { formatTime } from '@/lib/slotTimes'
 
 type SignupCount = 0 | 1 | 2 | 'more'
 
@@ -258,7 +259,7 @@ export default function RosterClient({
                 <td className="px-4 py-3 text-gray-500 text-xs">
                   {student.shifts.map((sg: any, i: number) => (
                     <span key={i} className="block">
-                      {sg.slot?.location?.name} · {sg.slot?.date} {sg.slot?.start_time?.slice(0, 5)}
+                      {sg.slot?.location?.name} · {sg.slot?.date} {formatTime(sg.slot?.start_time)}
                     </span>
                   ))}
                 </td>
@@ -314,7 +315,7 @@ export default function RosterClient({
                     {signup.slot?.location?.name || '-'}
                   </td>
                   <td className="px-4 py-3 text-gray-600">
-                    {signup.slot?.date} {signup.slot?.start_time?.slice(0, 5)}
+                    {signup.slot?.date} {formatTime(signup.slot?.start_time)}
                   </td>
                 </tr>
               ))}

@@ -6,6 +6,7 @@ import { getEffectiveCapacity } from '@/lib/capacity'
 import SiteFooter from '@/app/components/SiteFooter'
 import EventSignupForm from './EventSignupForm'
 import { issueFormToken } from '@/lib/formToken'
+import { formatTime } from '@/lib/slotTimes'
 
 export const metadata = {
   robots: { index: false, follow: false },
@@ -57,13 +58,6 @@ export default async function EventSignupPage({
       full: filled >= effectiveMax,
     }
   })
-
-  const formatTime = (t: string) => {
-    const [h, m] = t.slice(0, 5).split(':').map(Number)
-    const ampm = h >= 12 ? 'PM' : 'AM'
-    const hour = h % 12 || 12
-    return `${hour}:${String(m).padStart(2, '0')} ${ampm}`
-  }
 
   const formToken = issueFormToken()
 

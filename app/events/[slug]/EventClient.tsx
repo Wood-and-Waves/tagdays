@@ -5,13 +5,7 @@ import { useRouter } from 'next/navigation'
 import { SlotWithSignups, EventRole } from '@/lib/types'
 import { getEffectiveCapacity } from '@/lib/capacity'
 import { viewControls } from '@/lib/viewControls'
-
-const formatTime = (t: string) => {
-  const [h, m] = t.slice(0, 5).split(':').map(Number)
-  const ampm = h >= 12 ? 'PM' : 'AM'
-  const hour = h % 12 || 12
-  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`
-}
+import { formatTime } from '@/lib/slotTimes'
 
 const formatDate = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString('en-US', {
   weekday: 'short', month: 'short', day: 'numeric'

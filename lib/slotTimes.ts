@@ -111,6 +111,27 @@ export function minuteOptions(stepMinutes: number = SHIFT_STEP_MINUTES): number[
   return minutes
 }
 
+/**
+ * "16:30", "16:30:00" or "4:30" → "4:30 PM". THE 12-hour formatter.
+ *
+ * Every time a volunteer reads is written by this. It existed as three
+ * hand-copied closures in three screens while every email and text message
+ * printed a raw "16:30" instead, so the same shift read as 4:30 PM on the
+ * website and 16:30 in the text telling you to turn up for it.
+ *
+ * Built on toMinutes, so it takes all three shapes a time arrives in and
+ * returns an empty string for anything that is not a time, rather than the
+ * "NaN:NaN PM" the hand-written copies produced.
+ */
+export function formatTime(value: string | null | undefined): string {
+  const total = toMinutes(value)
+  if (total === null) return ''
+  const hour = Math.floor(total / 60)
+  const minute = total % 60
+  // 0 and 12 both map to 12 — midnight is 12:00 AM, noon is 12:00 PM.
+  return `${hour % 12 || 12}:${String(minute).padStart(2, '0')} ${hour >= 12 ? 'PM' : 'AM'}`
+}
+
 /** 6 → "6 AM", 12 → "12 PM", 21 → "9 PM". */
 export function formatHour(hour: number): string {
   return `${hour % 12 || 12} ${hour >= 12 ? 'PM' : 'AM'}`

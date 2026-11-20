@@ -3,8 +3,9 @@ import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import twilio from 'twilio'
 import { fromZonedTime, toZonedTime, format } from 'date-fns-tz'
+import { formatTime } from '../../lib/slotTimes'
+import { EVENT_TIMEZONE } from '../../lib/eventDates'
 
-const EVENT_TIMEZONE = 'America/Chicago'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -124,7 +125,7 @@ async function sendReminder({
           <p style="margin: 0 0 8px;"><strong>Location:</strong> ${locationName}</p>
           ${locationAddress ? `<p style="margin: 0 0 8px; color: #6b7280;">${locationAddress}</p>` : ''}
           <p style="margin: 0 0 8px;"><strong>Date:</strong> ${formattedDate}</p>
-          <p style="margin: 0 0 8px;"><strong>Time:</strong> ${slot.start_time.slice(0, 5)} - ${slot.end_time.slice(0, 5)}</p>
+          <p style="margin: 0 0 8px;"><strong>Time:</strong> ${formatTime(slot.start_time)} - ${formatTime(slot.end_time)}</p>
           <p style="margin: 0;"><strong>Role:</strong> ${signup.role}</p>
         </div>
 
@@ -158,8 +159,8 @@ async function sendReminder({
   if ((signup.reminder_preference === 'sms' || signup.reminder_preference === 'both') && signup.phone) {
     try {
       const smsBody = isToday
-        ? `${eventName} reminder: Your shift is TODAY at ${slot.start_time.slice(0, 5)} at ${locationName}. Go Raiders! - Huntley Band Boosters`
-        : `${eventName} reminder: Your shift is coming up! ${formattedDate} at ${slot.start_time.slice(0, 5)}, ${locationName}. Reply STOP to opt out. - Huntley Band Boosters`
+        ? `${eventName} reminder: Your shift is TODAY at ${formatTime(slot.start_time)} at ${locationName}. Go Raiders! - Huntley Band Boosters`
+        : `${eventName} reminder: Your shift is coming up! ${formattedDate} at ${formatTime(slot.start_time)}, ${locationName}. Reply STOP to opt out. - Huntley Band Boosters`
 
       await twilioClient.messages.create({
         body: smsBody,

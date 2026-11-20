@@ -10,6 +10,7 @@ import {
   minuteOptions,
   formatHour,
   formatDuration,
+  formatTime,
   toMinutes,
   fromMinutes,
   DEFAULT_SHIFT_MINUTES,
@@ -18,13 +19,6 @@ import {
 
 const HOUR_OPTIONS = hourOptions()
 const MINUTE_OPTIONS = minuteOptions()
-
-const formatTime = (t: string) => {
-  const [h, m] = t.split(':').map(Number)
-  const ampm = h >= 12 ? 'PM' : 'AM'
-  const hour = h % 12 || 12
-  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`
-}
 
 /**
  * An hour, then the quarter — rather than one dropdown of every quarter hour
@@ -502,7 +496,7 @@ export default function SlotsClient({
                   </td>
                   <td className="px-4 py-3 text-gray-700 align-top">{slot.location?.name || 'General'}</td>
                   <td className="px-4 py-3 text-gray-700 align-top">
-                    {formatTime(slot.start_time.slice(0, 5))} – {formatTime(slot.end_time.slice(0, 5))}
+                    {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
                   </td>
                   <td className="px-4 py-3 text-gray-700 align-top">{active.length} signed up</td>
                   <td className="px-4 py-3 align-top">

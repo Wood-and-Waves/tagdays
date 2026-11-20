@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
 import { EMAIL_FROM, EMAIL_REPLY_TO } from './sender'
+import { formatTime } from '@/lib/slotTimes'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -51,7 +52,7 @@ export async function sendConfirmationEmail({
             <p style="margin: 0 0 8px;"><strong>Location:</strong> ${locationName}</p>
             ${address ? `<p style="margin: 0 0 8px; color: #6b7280;">${address}</p>` : ''}
             <p style="margin: 0 0 8px;"><strong>Date:</strong> ${formattedDate}</p>
-            <p style="margin: 0 0 8px;"><strong>Time:</strong> ${startTime.slice(0, 5)} – ${endTime.slice(0, 5)}</p>
+            <p style="margin: 0 0 8px;"><strong>Time:</strong> ${formatTime(startTime)} – ${formatTime(endTime)}</p>
             <p style="margin: 0;"><strong>Role:</strong> ${role}</p>
           </div>
 

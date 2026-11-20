@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import PageHint from '@/app/admin/PageHint'
 import { getEffectiveCapacity } from '@/lib/capacity'
+import { formatTime } from '@/lib/slotTimes'
 
 export default async function AdminDashboard({
   searchParams,
@@ -125,7 +126,7 @@ export default async function AdminDashboard({
                       </td>
                       <td className="px-4 py-3 text-gray-700">{slot.location?.name || 'General'}</td>
                       <td className="px-4 py-3 text-gray-700">
-                        {slot.start_time.slice(0, 5)} – {slot.end_time.slice(0, 5)}
+                        {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-1">

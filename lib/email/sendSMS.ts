@@ -1,4 +1,5 @@
 import twilio from 'twilio'
+import { formatTime } from '@/lib/slotTimes'
 
 const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
@@ -42,7 +43,7 @@ export async function sendConfirmationSMS({
     day: 'numeric',
   })
 
-  const message = `Hi ${firstName}! You're signed up for ${eventName}. Location: ${locationName}. Date: ${formattedDate}, ${startTime.slice(0, 5)}–${endTime.slice(0, 5)}. Arrive 20-30 min early. Reply STOP to opt out. - Huntley Band Boosters`
+  const message = `Hi ${firstName}! You're signed up for ${eventName}. Location: ${locationName}. Date: ${formattedDate}, ${formatTime(startTime)}–${formatTime(endTime)}. Arrive 20-30 min early. Reply STOP to opt out. - Huntley Band Boosters`
 
   await sendSMS({ to, message })
 }

@@ -8,6 +8,7 @@ import {
   minuteOptions,
   formatHour,
   formatDuration,
+  formatTime,
   DEFAULT_SHIFT_MINUTES,
 } from './slotTimes'
 
@@ -182,5 +183,33 @@ describe('formatDuration', () => {
     expect(formatDuration(90)).toBe('1 hr 30 min')
     expect(formatDuration(120)).toBe('2 hr')
     expect(formatDuration(240)).toBe('4 hr')
+  })
+})
+
+describe('formatTime', () => {
+  it('writes the time the way somebody says it', () => {
+    expect(formatTime('16:30')).toBe('4:30 PM')
+    expect(formatTime('08:00')).toBe('8:00 AM')
+    expect(formatTime('20:30')).toBe('8:30 PM')
+  })
+
+  // Both ends of the clock map onto 12, and they are the two that a naive
+  // `h % 12` gets wrong.
+  it('gets midnight and noon right', () => {
+    expect(formatTime('00:00')).toBe('12:00 AM')
+    expect(formatTime('12:00')).toBe('12:00 PM')
+    expect(formatTime('12:45')).toBe('12:45 PM')
+    expect(formatTime('00:15')).toBe('12:15 AM')
+  })
+
+  it('takes all three shapes a time arrives in', () => {
+    expect(formatTime('8:00')).toBe('8:00 AM')
+    expect(formatTime('08:00:00')).toBe('8:00 AM')
+  })
+
+  it('returns nothing for what is not a time, rather than NaN', () => {
+    for (const bad of ['', 'noon', '25:00', null, undefined]) {
+      expect(formatTime(bad as string)).toBe('')
+    }
   })
 })
