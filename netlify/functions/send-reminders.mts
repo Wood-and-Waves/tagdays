@@ -5,6 +5,7 @@ import twilio from 'twilio'
 import { fromZonedTime, toZonedTime, format } from 'date-fns-tz'
 import { formatTime } from '../../lib/slotTimes'
 import { EVENT_TIMEZONE } from '../../lib/eventDates'
+import { EMAIL_FROM, EMAIL_REPLY_TO } from '../../lib/email/sender'
 
 
 const supabase = createClient(
@@ -130,10 +131,10 @@ async function sendReminder({
         </div>
 
         <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin: 24px 0;">
-          <p style="margin: 0; color: #7f1d1d;">${event.reminder_notes || 'Please arrive 10-15 minutes early. If your plans change, contact Amy Koegel as soon as possible so we can find a replacement.'}</p>
+          <p style="margin: 0; color: #7f1d1d;">${event.reminder_notes || 'Please arrive 10-15 minutes early. If your plans change, contact Angela as soon as possible so we can find a replacement.'}</p>
         </div>
 
-        <p style="color: #4b5563;">Questions? Contact Amy Koegel at <a href="mailto:fundraising@huntleybands.com" style="color: #b91c1c;">fundraising@huntleybands.com</a></p>
+        <p style="color: #4b5563;">Questions? Contact Angela at <a href="mailto:fundraising@huntleybands.com" style="color: #b91c1c;">fundraising@huntleybands.com</a></p>
       </div>
 
       <div style="background-color: #f3f4f6; padding: 16px; text-align: center;">
@@ -145,7 +146,8 @@ async function sendReminder({
   if (signup.reminder_preference === 'email' || signup.reminder_preference === 'both') {
     try {
       await resend.emails.send({
-        from: `${eventName} <noreply@hhstagdays.com>`,
+        from: EMAIL_FROM,
+        replyTo: EMAIL_REPLY_TO,
         to: signup.email,
         subject,
         html: emailHtml,
